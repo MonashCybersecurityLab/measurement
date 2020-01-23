@@ -2,4 +2,7 @@ enclave {
     trusted {
         public void ecall_test();
     };
-}
+    untrusted {
+        void ocall_print_string([in, string] const char *str);
+    };
+};

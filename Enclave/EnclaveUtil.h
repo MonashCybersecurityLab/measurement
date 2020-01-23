@@ -2,7 +2,9 @@
 #define MEASUREMENT_ENCLAVEUTIL_H
 
 #include <cstdio>
-#include <stdarg.h>
+#include <cstdarg>
+
+#include "Enclave_t.h"
 
 using namespace std;
 

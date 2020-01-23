@@ -1,7 +1,7 @@
 #include "sgx_trts.h"
 #include "Enclave_t.h"
 
-#include "EnclaveUtils.h"
+#include "EnclaveUtil.h"
 
 using namespace std;
 

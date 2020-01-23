@@ -5,6 +5,12 @@
 
 #define ENCLAVE_FILE "Enclave.signed.so"
 
+using namespace std;
+
+void ocall_print_string(const char *str) {
+    printf("%s\n", str);
+}
+
 int main() {
     /* Setup enclave */
     sgx_enclave_id_t eid;
