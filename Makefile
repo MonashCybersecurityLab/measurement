@@ -81,8 +81,8 @@ else
 	Urts_Library_Name := sgx_urts
 endif
 
-App_Cpp_Files := $(wildcard App/*.cpp)
-App_Include_Paths := -IApp -I$(SGX_SDK)/include -I/usr/include/openssl
+App_Cpp_Files := $(wildcard App/*.cpp) $(wildcard Common/*.cpp)
+App_Include_Paths := -ICommon -IApp -I$(SGX_SDK)/include -I/usr/include/openssl
 
 App_C_Flags := -fPIC -Wno-attributes $(App_Include_Paths)
 
@@ -117,8 +117,7 @@ Enclave_Version_Script := Enclave/Enclave_debug.lds
 ifeq ($(SGX_MODE), HW)
 ifneq ($(SGX_DEBUG), 1)
 ifneq ($(SGX_PRERELEASE), 1)
-	# Choose to use 'Enclave.lds' for HW release mode
-	Enclave_Version_Script = Enclave/Enclave.lds
+	Enclave_Version_Script := Enclave/Enclave.lds # Choose to use 'Enclave.lds' for HW release mode
 endif
 endif
 endif
@@ -132,8 +131,8 @@ else
 endif
 Crypto_Library_Name := sgx_tcrypto
 
-Enclave_Cpp_Files := $(wildcard Enclave/*.cpp)
-Enclave_Include_Paths := -IEnclave -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/libcxx
+Enclave_Cpp_Files := $(wildcard Enclave/*.cpp) $(wildcard Common/*.cpp)
+Enclave_Include_Paths := -ICommon -IEnclave -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/libcxx
 
 Enclave_C_Flags := -nostdinc -fvisibility=hidden -fpie -fstack-protector $(Enclave_Include_Paths)
 Enclave_Cpp_Flags := $(Enclave_C_Flags) -nostdinc++

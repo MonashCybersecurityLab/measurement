@@ -2,9 +2,13 @@
 #include "Enclave_t.h"
 
 #include "EnclaveUtil.h"
+#include "CMSketch/CMSketch.h"
 
 using namespace std;
 
+CMSketch<4, 3> *sketch = nullptr;
+
 void ecall_test() {
-    printf("test");
+    sketch = new CMSketch<4, 3>(600 * 1024);
+    sketch->print_basic_info();
 }
