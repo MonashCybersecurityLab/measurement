@@ -19,26 +19,26 @@ private:
     int memory_in_bytes = 0;
 
     int w = 0;
-    uint8_t *counters[d] = {nullptr};
+    int *counters[d] = {nullptr};
 
 public:
     CMSketch() {}
 
-    CMSketch(int memory_in_bytes) {
-        initial(memory_in_bytes);
+    CMSketch(int bytes) {
+        initial(bytes);
     }
 
     ~CMSketch() {
 
     }
 
-    void initial(int memory_in_bytes) {
-        this->memory_in_bytes = memory_in_bytes;
-        w = memory_in_bytes / d;
+    void initial(int bytes) {
+        this->memory_in_bytes = bytes;
+        w = memory_in_bytes / 4 / d;
 
         for(int i = 0; i < d; i++) {
-            counters[i] = new uint8_t[w];
-            memset(counters[i], 0, w);
+            counters[i] = new int[w];
+            memset(counters[i], 0, 4 * w);
         }
     }
 
@@ -52,13 +52,13 @@ public:
     {
         printf("CM sketch\n");
         printf("\tCounters: %d\n", w);
-        printf("\tMemory: %.6lfMB\n", w / 1024 / 1024.0);
+        printf("\tMemory: %.6lfMB\n", w * 4.0 / 1024 / 1024);
     }
 
-    void insert(uint8_t * key, uint8_t count = 1)
+    void insert(uint8_t * key, int count = 1)
     {
         for (int i = 0; i < d; i++) {
-            int index = (SpookyHash::Hash32(key, 1, i)) % w;
+            int index = (SpookyHash::Hash32(key, key_len, i)) % w;
             counters[i][index] += count;
         }
     }
@@ -67,7 +67,7 @@ public:
     {
         int ret = 1 << 30;
         for (int i = 0; i < d; i++) {
-            int index = (SpookyHash::Hash32(key, 1, i)) % w;
+            int index = (SpookyHash::Hash32(key, key_len, i)) % w;
             int tmp = counters[i][index];
             ret = min(ret, tmp);
         }

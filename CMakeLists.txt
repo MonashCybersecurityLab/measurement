@@ -14,7 +14,9 @@ add_custom_target(cleanup
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 # include root dir
-INCLUDE_DIRECTORIES(Enclave/SpookyHash)
+INCLUDE_DIRECTORIES(Enclave/SpookyHash Enclave/CMSketch)
 
 
 ADD_EXECUTABLE(TestSpookyV2 Test/TestSpookyV2.cpp Enclave/SpookyHash/SpookyV2.cpp)
+
+ADD_EXECUTABLE(TestCMSketch Test/TestCMSketch.cpp Enclave/SpookyHash/SpookyV2.cpp)
