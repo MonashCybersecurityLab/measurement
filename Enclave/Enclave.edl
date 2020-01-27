@@ -1,6 +1,13 @@
 enclave {
+    struct FIVE_TUPLE {
+        char key[13];
+    };
+
     trusted {
+
         public void ecall_init();
+
+        public void ecall_add_trace([in, count=trace_size] struct FIVE_TUPLE *trace, size_t trace_size);
     };
     untrusted {
         void ocall_print_string([in, string] const char *str);

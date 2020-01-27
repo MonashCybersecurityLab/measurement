@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 
 #include "sgx_urts.h"
 #include "../Enclave_u.h"
@@ -6,6 +7,34 @@
 #define ENCLAVE_FILE "Enclave.signed.so"
 
 using namespace std;
+
+#define START_FILE_NO 1
+#define END_FILE_NO 2
+
+typedef vector<FIVE_TUPLE> TRACE;
+TRACE traces[END_FILE_NO - START_FILE_NO + 1];
+
+void ReadInTraces(const char *trace_prefix)
+{
+    for(int datafileCnt = START_FILE_NO; datafileCnt <= END_FILE_NO; ++datafileCnt)
+    {
+        char datafileName[100];
+        sprintf(datafileName, "%s%d.dat", trace_prefix, datafileCnt - 1);
+        FILE *fin = fopen(datafileName, "rb");
+
+        FIVE_TUPLE tmp_five_tuple{};
+        traces[datafileCnt - 1].clear();
+        while(fread(&tmp_five_tuple, 1, 13, fin) == 13)
+        {
+            traces[datafileCnt - 1].push_back(tmp_five_tuple);
+        }
+        fclose(fin);
+
+        printf("Successfully read in %s, %ld packets\n", datafileName, traces[datafileCnt - 1].size());
+    }
+    printf("\n");
+}
+
 
 void ocall_print_string(const char *str) {
     printf("%s\n", str);
@@ -26,5 +55,11 @@ int main() {
     }
 
     ecall_init(eid);
+
+    ReadInTraces("data/");
+
+    for(int datafileCnt = START_FILE_NO; datafileCnt <= END_FILE_NO; ++datafileCnt) {
+        ecall_add_trace(eid, traces[datafileCnt].data(), traces[datafileCnt - 1].size());
+    }
 }
 

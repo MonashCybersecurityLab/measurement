@@ -7,7 +7,6 @@
 
 #include <algorithm>
 #include <sstream>
-#include <cstring>
 
 #include "../SpookyHash/SpookyV2.h"
 
@@ -55,7 +54,7 @@ public:
         printf("\tMemory: %.6lfMB\n", w / 1024 / 1024.0);
     }
 
-    void insert(uint8_t * key, int count = 1)
+    void insert(uint8_t * key, uint8_t count = 1)
     {
         for (int i = 0; i < d; i++) {
             int index = (SpookyHash::Hash32(key, key_len, i)) % w;

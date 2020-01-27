@@ -4,6 +4,9 @@
 #include <cstdio>
 #include <cstdarg>
 
+#include <string>
+#include <unordered_map>
+
 #include "Enclave_t.h"
 
 using namespace std;
