@@ -1,6 +1,6 @@
 enclave {
     trusted {
-        public void ecall_test();
+        public void ecall_init();
     };
     untrusted {
         void ocall_print_string([in, string] const char *str);

@@ -111,6 +111,12 @@ App_Cpp_Objects := $(App_Cpp_Files:.cpp=.o)
 
 App_Name := app
 
+Test_Cpp_Files := $(wildcard App/Test/*.cpp) $(wildcard Common/*.cpp)
+
+Test_Cpp_Objects := $(Test_Cpp_Files:.cpp=.o)
+
+Test_Name := TestMeasurementTasks
+
 ######## Enclave Settings ########
 
 Enclave_Version_Script := Enclave/Enclave_debug.lds
@@ -185,7 +191,7 @@ all: .config_$(Build_Mode)_$(SGX_ARCH)
 	@$(MAKE) target
 
 ifeq ($(Build_Mode), HW_RELEASE)
-target: $(App_Name) $(Enclave_Name)
+target: $(App_Name) $(Enclave_Name) $(Test_Name)
 	@echo "The project has been built in release hardware mode."
 	@echo "Please sign the $(Enclave_Name) first with your signing key before you run the $(App_Name) to launch and access the enclave."
 	@echo "To sign the enclave use the command:"
@@ -193,7 +199,7 @@ target: $(App_Name) $(Enclave_Name)
 	@echo "You can also sign the enclave using an external signing tool."
 	@echo "To build the project in simulation mode set SGX_MODE=SIM. To build the project in prerelease mode set SGX_PRERELEASE=1 and SGX_MODE=HW."
 else
-target: $(App_Name) $(Signed_Enclave_Name)
+target: $(App_Name) $(Signed_Enclave_Name) $(Test_Name)
 ifeq ($(Build_Mode), HW_DEBUG)
 	@echo "The project has been built in debug hardware mode."
 else ifeq ($(Build_Mode), SIM_DEBUG)
@@ -237,6 +243,14 @@ $(App_Name): App/Enclave_u.o $(App_Cpp_Objects)
 	@$(CXX) $^ -o $@ $(App_Link_Flags)
 	@echo "LINK =>  $@"
 
+App/Test/%.o: App/Test/%.cpp App/Enclave_u.h
+	@$(CXX) $(SGX_COMMON_CXXFLAGS) $(App_Cpp_Flags) -c $< -o $@
+	@echo "CXX  <=  $<"
+
+$(Test_Name): App/Enclave_u.o $(Test_Cpp_Objects)
+	@$(CXX) $^ -o $@ $(App_Link_Flags)
+	@echo "LINK =>  $@"
+
 ######## Enclave Objects ########
 
 Enclave/Enclave_t.h: $(SGX_EDGER8R) Enclave/Enclave.edl
@@ -266,4 +280,4 @@ $(Signed_Enclave_Name): $(Enclave_Name)
 .PHONY: clean
 
 clean:
-	@rm -f .config_* $(App_Name) $(Enclave_Name) $(Signed_Enclave_Name) $(App_Cpp_Objects) App/Enclave_u.* $(Enclave_Cpp_Objects) Enclave/Enclave_t.*
+	@rm -f .config_* $(App_Name) $(Enclave_Name) $(Signed_Enclave_Name) ${Test_Name} $(App_Cpp_Objects) App/Enclave_u.* $(Enclave_Cpp_Objects) Enclave/Enclave_t.*

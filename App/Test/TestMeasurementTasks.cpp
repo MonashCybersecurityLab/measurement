@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "sgx_urts.h"
-#include "Enclave_u.h"
+#include "../Enclave_u.h"
 
 #define ENCLAVE_FILE "Enclave.signed.so"
 
@@ -27,3 +27,4 @@ int main() {
 
     ecall_init(eid);
 }
+

@@ -8,7 +8,7 @@ using namespace std;
 
 CMSketch<4, 3> *sketch = nullptr;
 
-void ecall_test() {
+void ecall_init() {
     sketch = new CMSketch<4, 3>(600 * 1024);
     sketch->print_basic_info();
 }

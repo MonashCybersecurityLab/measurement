@@ -1,7 +1,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../Enclave/CMSketch/CMSketch.h"
+#include "CMSketch.h"
 
 using namespace std;
 

@@ -4,7 +4,7 @@
 #include <cstring>
 #include <ctime>
 
-#include "../Enclave/SpookyHash/SpookyV2.h"
+#include "SpookyV2.h"
 
 using namespace std;
 

@@ -6,5 +6,6 @@
 *.o
 /.config_SIM_DEBUG_x64
 /app
+/TestMeasurementTasks
 Enclave_t.*
 Enclave_u.*

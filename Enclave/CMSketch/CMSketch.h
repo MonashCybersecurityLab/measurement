@@ -19,26 +19,26 @@ private:
     int memory_in_bytes = 0;
 
     int w = 0;
-    int *counters[d] = {nullptr};
+    uint8_t *counters[d] = {nullptr};
 
 public:
-    CMSketch() {}
+    CMSketch() = default;
 
-    CMSketch(int bytes) {
+    explicit CMSketch(int bytes) {
         initial(bytes);
     }
 
     ~CMSketch() {
-
+        clear();
     }
 
     void initial(int bytes) {
         this->memory_in_bytes = bytes;
-        w = memory_in_bytes / 4 / d;
+        w = memory_in_bytes / d;
 
         for(int i = 0; i < d; i++) {
-            counters[i] = new int[w];
-            memset(counters[i], 0, 4 * w);
+            counters[i] = new uint8_t[w];
+            memset(counters[i], 0, w);
         }
     }
 
@@ -52,7 +52,7 @@ public:
     {
         printf("CM sketch\n");
         printf("\tCounters: %d\n", w);
-        printf("\tMemory: %.6lfMB\n", w * 4.0 / 1024 / 1024);
+        printf("\tMemory: %.6lfMB\n", w / 1024 / 1024.0);
     }
 
     void insert(uint8_t * key, int count = 1)
