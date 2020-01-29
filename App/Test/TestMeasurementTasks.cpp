@@ -41,7 +41,7 @@ void ocall_print_string(const char *str) {
 }
 
 int main() {
-    /* Setup enclave */
+    // setup enclave
     sgx_enclave_id_t eid;
     sgx_status_t ret;
     sgx_launch_token_t token = { 0 };
@@ -56,10 +56,15 @@ int main() {
 
     ecall_init(eid);
 
+    // read offline data
     ReadInTraces("data/");
 
+    // add the data into sketch
     for(int datafileCnt = START_FILE_NO; datafileCnt <= END_FILE_NO; ++datafileCnt) {
-        ecall_add_trace(eid, traces[datafileCnt].data(), traces[datafileCnt - 1].size());
+        ecall_add_trace(eid, traces[datafileCnt - 1].data(), traces[datafileCnt - 1].size());
     }
+
+    // destroy the enclave
+    sgx_destroy_enclave(eid);
 }
 

@@ -7,7 +7,7 @@ enclave {
 
         public void ecall_init();
 
-        public void ecall_add_trace([in, count=trace_size] struct FIVE_TUPLE *trace, size_t trace_size);
+        public void ecall_add_trace([user_check] struct FIVE_TUPLE *trace, size_t trace_size);
     };
     untrusted {
         void ocall_print_string([in, string] const char *str);

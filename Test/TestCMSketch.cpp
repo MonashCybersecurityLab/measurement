@@ -54,8 +54,7 @@ int main() {
         }
 
         double ARE = 0;
-        for(auto & it : Real_Freq)
-        {
+        for(auto & it : Real_Freq) {
             uint8_t key[4];
             memcpy(key, (it.first).c_str(), 4);
             int est_val = cm->query(key);

@@ -47,6 +47,12 @@ public:
         }
     }
 
+    void reset() {
+        for(int i = 0; i < d; i++) {
+            memset(counters[i], 0, w);
+        }
+    }
+
     void print_basic_info()
     {
         printf("CM sketch\n");
@@ -62,12 +68,12 @@ public:
         }
     }
 
-    int query(uint8_t * key)
+    uint8_t query(uint8_t * key)
     {
-        int ret = 1 << 30;
+        uint8_t ret = 1 << 7;
         for (int i = 0; i < d; i++) {
             int index = (SpookyHash::Hash32(key, key_len, i)) % w;
-            int tmp = counters[i][index];
+            uint8_t tmp = counters[i][index];
             ret = min(ret, tmp);
         }
         return ret;
