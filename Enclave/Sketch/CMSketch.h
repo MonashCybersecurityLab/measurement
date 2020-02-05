@@ -78,7 +78,6 @@ public:
         }
         return ret;
     }
-
 };
 
 #endif //MEASUREMENT_CMSKETCH_H

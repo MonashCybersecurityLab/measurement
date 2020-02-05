@@ -54,15 +54,22 @@ int main() {
         return 1;
     }
 
+    // initialise the enclave with message queues
     ecall_init(eid);
+
+    // ecall in another thread
 
     // read offline data
     ReadInTraces("data/");
+
+    // add the test data into the queue
 
     // add the data into sketch
     for(int datafileCnt = START_FILE_NO; datafileCnt <= END_FILE_NO; ++datafileCnt) {
         ecall_add_trace(eid, traces[datafileCnt - 1].data(), traces[datafileCnt - 1].size());
     }
+
+    // add query into the queue
 
     // destroy the enclave
     sgx_destroy_enclave(eid);

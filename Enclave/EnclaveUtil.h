@@ -1,9 +1,6 @@
 #ifndef MEASUREMENT_ENCLAVEUTIL_H
 #define MEASUREMENT_ENCLAVEUTIL_H
 
-#include <cstdio>
-#include <cstdarg>
-
 #include <string>
 #include <unordered_map>
 
