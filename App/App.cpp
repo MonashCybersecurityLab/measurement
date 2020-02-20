@@ -2,6 +2,7 @@
 
 #include "sgx_urts.h"
 #include "Enclave_u.h"
+#include "../Common/Ringbuffer.h"
 
 #define ENCLAVE_FILE "Enclave.signed.so"
 
@@ -25,5 +26,5 @@ int main() {
         return 1;
     }
 
-    ecall_init(eid);
+    //ecall_init(eid);
 }

@@ -23,6 +23,8 @@ SGX_MODE ?= HW
 SGX_ARCH ?= x64
 SGX_DEBUG ?= 1
 
+OPENSSL_LIBRARY_PATH ?= /opt/intel/sgxssl/lib64
+
 ifeq ($(shell getconf LONG_BIT), 32)
 	SGX_ARCH := x86
 else ifeq ($(findstring -m32, $(CXXFLAGS)), -m32)
@@ -49,9 +51,13 @@ endif
 
 
 ifeq ($(SGX_DEBUG), 1)
-		SGX_COMMON_CFLAGS += -O2 -fdata-sections -ffunction-sections -Wl,--gc-sections
+		SGX_COMMON_CFLAGS += -O0 -g -fdata-sections -ffunction-sections -Wl,--gc-sections
+		SGXSSL_Library_Name := sgx_tsgxssld
+        OpenSSL_Crypto_Library_Name := sgx_tsgxssl_cryptod
 else
 		SGX_COMMON_CFLAGS += -O2 -fdata-sections -ffunction-sections -Wl,--gc-sections
+		SGXSSL_Library_Name := sgx_tsgxssl
+        OpenSSL_Crypto_Library_Name := sgx_tsgxssl_crypto
 endif
 
 ######## Enclave Settings ########
@@ -76,10 +82,13 @@ Crypto_Library_Name := sgx_tcrypto
 
 Enclave_C_Files := $(wildcard ../Common/*.c)
 Enclave_Cpp_Files := $(wildcard *.cpp) $(wildcard SpookyHash/*.cpp)
-Enclave_Include_Paths := -I../Common -I. -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/libcxx
+Enclave_Include_Paths := -I../Common -I. -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/libcxx -I/opt/intel/sgxssl/include
 
 Enclave_C_Flags := $(SGX_COMMON_CFLAGS) -nostdinc -fvisibility=hidden -fpie -fstack-protector $(Enclave_Include_Paths)
 Enclave_Cpp_Flags := $(Enclave_C_Flags) -nostdinc++
+
+SGXSSL_Link_Libraries := -L$(OPENSSL_LIBRARY_PATH) -Wl,--whole-archive -l$(SGXSSL_Library_Name) -Wl,--no-whole-archive \
+						 -l$(OpenSSL_Crypto_Library_Name)
 
 # Enable the security flags
 Enclave_Security_Link_Flags := $(SGX_COMMON_CFLAGS) -Wl,-z,relro,-z,now,-z,noexecstack
@@ -92,9 +101,9 @@ Enclave_Security_Link_Flags := $(SGX_COMMON_CFLAGS) -Wl,-z,relro,-z,now,-z,noexe
 # Do NOT move the libraries linked with `--start-group' and `--end-group' within `--whole-archive' and `--no-whole-archive' options.
 # Otherwise, you may get some undesirable errors.
 Enclave_Link_Flags := $(Enclave_Security_Link_Flags) \
-    -Wl,--no-undefined -nostdlib -nodefaultlibs -nostartfiles -L$(SGX_LIBRARY_PATH) \
+    -Wl,--no-undefined -nostdlib -nodefaultlibs -nostartfiles -L$(SGX_LIBRARY_PATH) $(SGXSSL_Link_Libraries) \
 	-Wl,--whole-archive -l$(Trts_Library_Name) -Wl,--no-whole-archive \
-	-Wl,--start-group -lsgx_tstdc -lsgx_tcxx -l$(Crypto_Library_Name) -l$(Service_Library_Name) -Wl,--end-group \
+	-Wl,--start-group -lsgx_tstdc -lsgx_tcxx -l$(Service_Library_Name) -l$(Crypto_Library_Name) -Wl,--end-group \
 	-Wl,-Bstatic -Wl,-Bsymbolic -Wl,--no-undefined \
 	-Wl,-pie,-eenclave_entry -Wl,--export-dynamic  \
 	-Wl,--defsym,__ImageBase=0 \

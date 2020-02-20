@@ -62,7 +62,7 @@ endif
 
 
 ifeq ($(SGX_DEBUG), 1)
-		SGX_COMMON_CFLAGS += -O2 -fdata-sections -ffunction-sections -Wl,--gc-sections
+		SGX_COMMON_CFLAGS += -O0 -g -fdata-sections -ffunction-sections -Wl,--gc-sections
 else
 		SGX_COMMON_CFLAGS += -O2 -fdata-sections -ffunction-sections -Wl,--gc-sections
 endif
@@ -78,7 +78,7 @@ endif
 App_C_Files := $(wildcard ../Common/*.c)
 App_Cpp_Files := $(wildcard *.cpp)
 Test_Cpp_Files := $(wildcard Test/*.cpp)
-App_Include_Paths := -I../Common -I. -I$(SGX_SDK)/include -I/usr/include/openssl
+App_Include_Paths := -I../Common -I. -I$(SGX_SDK)/include
 
 App_C_Flags := $(SGX_COMMON_CFLAGS) -fPIC -Wno-attributes $(App_Include_Paths)
 
@@ -95,7 +95,7 @@ else
 endif
 
 App_Cpp_Flags := $(App_C_Flags) -std=c++11
-App_Link_Flags := $(SGX_COMMON_CFLAGS) -L$(SGX_LIBRARY_PATH) -l$(Urts_Library_Name) -lssl -lcrypto -lsgx_tcrypto
+App_Link_Flags := $(SGX_COMMON_CFLAGS) -L$(SGX_LIBRARY_PATH) -l$(Urts_Library_Name) -lpthread -lssl -lcrypto
 
 ifneq ($(SGX_MODE), HW)
 	App_Link_Flags += -lsgx_uae_service_sim

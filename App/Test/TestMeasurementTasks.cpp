@@ -1,8 +1,11 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
 
 #include "sgx_urts.h"
 #include "../Enclave_u.h"
+#include "../../Common/Message.h"
+#include "../../Common/Ringbuffer.h"
 
 #define ENCLAVE_FILE "Enclave.signed.so"
 
@@ -14,8 +17,7 @@ using namespace std;
 typedef vector<FIVE_TUPLE> TRACE;
 TRACE traces[END_FILE_NO - START_FILE_NO + 1];
 
-void ReadInTraces(const char *trace_prefix)
-{
+void ReadInTraces(const char *trace_prefix) {
     for(int datafileCnt = START_FILE_NO; datafileCnt <= END_FILE_NO; ++datafileCnt)
     {
         char datafileName[100];
@@ -35,7 +37,6 @@ void ReadInTraces(const char *trace_prefix)
     printf("\n");
 }
 
-
 void ocall_print_string(const char *str) {
     printf("%s\n", str);
 }
@@ -54,22 +55,39 @@ int main() {
         return 1;
     }
 
-    // initialise the enclave with message queues
-    ecall_init(eid);
+    Ringbuffer<Message, 1024> *rb_in = new Ringbuffer<Message, 1024>();
+    Ringbuffer<Message, 1024> *rb_out = new Ringbuffer<Message, 1024>();
 
-    // ecall in another thread
+    // initialise the enclave with message queues
+    ecall_init(eid, rb_in, rb_out);
+
+    // use another thread to process requests
+
+    // OVS parameters
+    struct ctx_gcm_s ctx;
+
+    // init ctx block
+    alloc_gcm(&ctx);
 
     // read offline data
-    ReadInTraces("data/");
-
-    // add the test data into the queue
-
-    // add the data into sketch
+    //ReadInTraces("data/");
     for(int datafileCnt = START_FILE_NO; datafileCnt <= END_FILE_NO; ++datafileCnt) {
-        ecall_add_trace(eid, traces[datafileCnt - 1].data(), traces[datafileCnt - 1].size());
+        char datafileName[100];
+        sprintf(datafileName, "%s%d.dat", "data/", datafileCnt - 1);
+
+        // pack and offline data
+        Message message;
+        pack_message_with_file(&message, STAT, &ctx, datafileName);
+
+        // send to the enclave
+        rb_in->push(message);
+
+        ecall_run(eid);
+
+        // add some queries
     }
 
-    // add query into the queue
+    // clean up
 
     // destroy the enclave
     sgx_destroy_enclave(eid);

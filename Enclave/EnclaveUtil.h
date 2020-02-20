@@ -10,5 +10,4 @@ using namespace std;
 
 void printf( const char *fmt, ...);
 
-
 #endif //MEASUREMENT_ENCLAVEUTIL_H
