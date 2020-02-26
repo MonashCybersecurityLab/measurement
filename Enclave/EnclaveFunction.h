@@ -8,7 +8,7 @@
 #include "EnclaveUtil.h"
 #include "Sketch/CMSketch.h"
 
-void AddTrace(CMSketch<4, 3> &sketch);
+void add_trace(CMSketch<4, 3> *sketch, unordered_map<string, float> &statistics, uint8_t *trace, int size);
 
 
 #endif //MEASUREMENT_ENCLAVEFUNCTION_H

@@ -77,7 +77,7 @@ endif
 
 App_C_Files := $(wildcard ../Common/*.c)
 App_Cpp_Files := $(wildcard *.cpp)
-Test_Cpp_Files := $(wildcard Test/*.cpp)
+Sim_Cpp_Files := $(wildcard Sim/*.cpp)
 App_Include_Paths := -I../Common -I. -I$(SGX_SDK)/include
 
 App_C_Flags := $(SGX_COMMON_CFLAGS) -fPIC -Wno-attributes $(App_Include_Paths)
@@ -105,9 +105,9 @@ endif
 
 App_C_Objects := $(App_C_Files:.c=.o)
 App_Cpp_Objects := $(App_Cpp_Files:.cpp=.o)
-Test_Cpp_Objects := $(Test_Cpp_Files:.cpp=.o)
+Sim_Cpp_Objects := $(Sim_Cpp_Files:.cpp=.o)
 
-Test_Name := TestMeasurementTasks
+Sim_Name := sim
 
 App_Name := app
 
@@ -131,7 +131,7 @@ endif
 
 .PHONY: all run
 
-all: $(App_Name) $(Test_Name)
+all: $(App_Name) $(Sim_Name)
 
 run: all
 
@@ -161,13 +161,13 @@ $(App_Name): Enclave_u.o $(App_Cpp_Objects) $(App_C_Objects)
 	mv $(App_Name) ../
 	@echo "LINK =>  $@"
 
-$(Test_Name): Enclave_u.o $(Test_Cpp_Objects) $(App_C_Objects)
+$(Sim_Name): Enclave_u.o $(Sim_Cpp_Objects) $(App_C_Objects)
 	@$(CXX) $^ -o $@ $(App_Link_Flags)
-	mv $(Test_Name) ../
+	mv $(Sim_Name) ../
 	@echo "LINK =>  $@"
 
 .PHONY: clean
 
 clean:
-	@rm -f $(App_C_Objects) $(App_Cpp_Objects) Enclave_u.* ../$(App_Name) $(Test_Cpp_Objects) ../$(Test_Name)
+	@rm -f $(App_C_Objects) $(App_Cpp_Objects) Enclave_u.* ../$(App_Name) $(Sim_Cpp_Objects) ../$(Sim_Name)
 

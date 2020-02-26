@@ -23,7 +23,12 @@ void pack_message_with_file(Message *message, enum message_type type, struct ctx
 
 void pack_message(Message *message, enum message_type type, struct ctx_gcm_s *ctx, uint8_t *payload, int size) {
     message->header.type = type;
-    message->header.payload_size = GCM_IV_SIZE + size;
+    if(size != 0) {
+        message->header.payload_size = GCM_IV_SIZE + size;
+    } else {
+        message->header.payload_size = 0;
+    }
+
 
     // has a valid payload
     if(payload != NULL) {
@@ -39,12 +44,9 @@ void pack_message(Message *message, enum message_type type, struct ctx_gcm_s *ct
     }
 }
 
-void unpack_message(Message *message, struct ctx_gcm_s *ctx) {
-    if(message->header.payload_size > 0) {
-        uint8_t *res = malloc(message->header.payload_size - GCM_IV_SIZE);
-        gcm_decrypt(message->payload + GCM_IV_SIZE, message->header.payload_size - GCM_IV_SIZE,
+int unpack_message(Message *message, struct ctx_gcm_s *ctx, uint8_t *res) {
+    return gcm_decrypt(message->payload + GCM_IV_SIZE, message->header.payload_size - GCM_IV_SIZE,
                 message->header.mac,
                 ctx->key, message->payload,
                 res);
-    }
 }

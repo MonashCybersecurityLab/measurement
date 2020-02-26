@@ -11,14 +11,6 @@
 
 #include "SpookyV2.h"
 
-#define SGX 1
-
-#ifdef SGX
-    #include "../EnclaveUtil.h"
-#else
-    #include <memory.h>
-#endif
-
 #define ALLOW_UNALIGNED_READS 1
 
 //

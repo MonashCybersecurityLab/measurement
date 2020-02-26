@@ -13,10 +13,12 @@ extern "C" {
 #endif
 
 enum message_type {
-    STAT = 0,   // new stat info
-    FLOW_SIZE,  // query flow size
-    RES,        // query result
-    STOP        // terminate the system
+    STAT = 0,       // new stat info
+    FLOW_SIZE,      // query flow size
+    HEAVY_HITTER,   // query the heavy hitter
+    HEAVY_CHANGE,   // query the heavy change
+    CARDINALITY,    // query the cardinality
+    STOP            // terminate the system
 };
 
 struct __attribute__((aligned(64))) header_s {
@@ -37,7 +39,7 @@ typedef struct message_s Message;
 void pack_message_with_file(Message *message, enum message_type type, struct ctx_gcm_s *ctx, char *fileName);
 void pack_message(Message *message, enum message_type type, struct ctx_gcm_s *ctx, uint8_t *payload, int size);
 
-void unpack_message(Message *message, struct ctx_gcm_s *ctx);
+int unpack_message(Message *message, struct ctx_gcm_s *ctx, uint8_t *res);
 
 #ifdef __cplusplus
 }
