@@ -49,7 +49,6 @@ $(error Cannot set SGX_DEBUG and SGX_PRERELEASE at the same time!!)
 endif
 endif
 
-
 ifeq ($(SGX_DEBUG), 1)
 		SGX_COMMON_CFLAGS += -O0 -g -fdata-sections -ffunction-sections -Wl,--gc-sections
 		SGXSSL_Library_Name := sgx_tsgxssld

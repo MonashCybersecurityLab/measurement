@@ -2,9 +2,11 @@
 #define MEASUREMENT_ENCLAVEUTIL_H
 
 #include <string>
-#include <unordered_map>
 
+#include "sgx_trts.h"
 #include "Enclave_t.h"
+#include "../Common/Message.h"
+#include "../Common/Ringbuffer.h"
 
 using namespace std;
 

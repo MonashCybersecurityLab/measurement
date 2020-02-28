@@ -155,7 +155,6 @@ Enclave_u.o: Enclave_u.c
 	$(CC) $(App_C_Flags) -c  $< -o $@
 	@echo "CXX  <=  $<"
 
-
 $(App_Name): Enclave_u.o $(App_Cpp_Objects) $(App_C_Objects)
 	@$(CXX) $^ -o $@ $(App_Link_Flags)
 	mv $(App_Name) ../

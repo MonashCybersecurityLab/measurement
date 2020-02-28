@@ -14,6 +14,25 @@
 #define GCM_IV_SIZE     12
 #define GCM_MAC_SIZE    16
 
+struct FIVE_TUPLE {
+    char key[13];
+};
+
+struct FLOW_KEY {   // 13 bytes
+    // 8 (4*2) bytes
+    uint32_t src_ip;  // source IP address
+    uint32_t dst_ip;
+    // 4 (2*2) bytes
+    uint16_t src_port;
+    uint16_t dst_port;
+    // 1 bytes
+    uint8_t proto;
+};
+
+#define FLOW_ID_SIZE sizeof(struct FIVE_TUPLE)
+
+#define HEAVY_HITTER_SIZE 20
+
 #ifdef __cplusplus
 extern "C" {
 #endif

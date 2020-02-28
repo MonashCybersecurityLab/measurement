@@ -1,16 +1,10 @@
 enclave {
     from "sgx_tstdc.edl" import *;
 
-    struct FIVE_TUPLE {
-        char key[13];
-    };
-
     trusted {
 
         public void ecall_init([user_check] void *rb_in, [user_check] void *rb_out, [in, size = key_size] unsigned char *ctx, size_t key_size);
         public void ecall_run();
-
-        public void ecall_add_trace([user_check] struct FIVE_TUPLE *trace, size_t trace_size);
     };
     untrusted {
         void ocall_print_string([in, string] const char *str);

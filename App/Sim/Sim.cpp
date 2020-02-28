@@ -2,6 +2,7 @@
 #include <iostream>
 #include <pthread.h>
 #include <vector>
+#include <arpa/inet.h>
 
 #include "sgx_urts.h"
 #include "../Enclave_u.h"
@@ -46,12 +47,39 @@ void *e_thread(void *eid) {
     ecall_run(*((sgx_enclave_id_t*) eid));
 }
 
+void parse_flow_id(struct FLOW_KEY *key) {
+    printf("--------------------------Flow ID--------------------------\n");
+    printf("src ip: %s\n", inet_ntoa(*((struct in_addr*) &(key->src_ip))));
+    printf("dst ip: %s\n", inet_ntoa(*((struct in_addr*) &(key->dst_ip))));
+    printf("src port: %d\n", ntohs(key->src_port));
+    printf("dst port: %d\n", ntohs(key->dst_port));
+    printf("proto: %d\n", key->proto);
+}
+
 void add_test_queries(Ringbuffer<Message, 1024> *query_buf, struct ctx_gcm_s *ctx) {
     // Add test queries
     for(int i = FLOW_SIZE; i <= CARDINALITY; i++) {
         Message query_message;
-        pack_message(&query_message, (message_type) i, ctx, nullptr, 0);
-
+        switch ((message_type) i) {
+            case FLOW_SIZE:
+                pack_message(&query_message, (message_type) i, ctx, (uint8_t*) traces[0].data(), FLOW_ID_SIZE);
+                break;
+            case HEAVY_HITTER:
+                {
+                    int k = HEAVY_HITTER_SIZE; // top-20 flows as the heavy hitters
+                    pack_message(&query_message, (message_type) i, ctx, (uint8_t*) &k, sizeof(int));
+                }
+                break;
+            case HEAVY_CHANGE:
+                pack_message(&query_message, (message_type) i, ctx, nullptr, 0);
+                break;
+            case CARDINALITY:
+                pack_message(&query_message, (message_type) i, ctx, nullptr, 0);
+                break;
+            default:
+                break;
+        }
+        // add into the buffer
         query_buf->push(query_message);
     }
 
@@ -70,9 +98,29 @@ void process_result(Ringbuffer<Message, 1024> *res_buf, struct ctx_gcm_s *ctx) {
         unpack_message(&res_message, ctx, valid_payload);
 
         switch (res_message.header.type) {
+            case FLOW_SIZE:
+            {
+                struct FLOW_KEY *flow_key = (struct FLOW_KEY*) valid_payload;
+                int *flow_size = (int *) (valid_payload + FLOW_ID_SIZE);
+                parse_flow_id((struct FLOW_KEY*) valid_payload);
+                printf("size: %d\n", *flow_size);
+            }
+                break;
+            case HEAVY_HITTER:
+            {
+                printf("Heavy hitter list:\n");
+                for(int i = 0; i < HEAVY_HITTER_SIZE; i++) {
+                    parse_flow_id((struct FLOW_KEY*) (valid_payload + i * FLOW_ID_SIZE));
+                }
+            }
+                break;
             case CARDINALITY:
+            {
                 int *card = (int*) valid_payload;
                 printf("Cardinality of Flows: %d\n", *card);
+            }
+                break;
+            default:
                 break;
         }
     }
@@ -109,7 +157,9 @@ int main() {
     pthread_create(&pid, NULL, e_thread, (void*) &eid);
 
     // read offline data
-    //ReadInTraces("data/");
+    ReadInTraces("data/");
+
+    // submit trace to the enclave
     for(int datafileCnt = START_FILE_NO; datafileCnt <= END_FILE_NO; ++datafileCnt) {
         char datafileName[100];
         sprintf(datafileName, "%s%d.dat", "data/", datafileCnt - 1);
@@ -120,7 +170,6 @@ int main() {
 
         // send to the enclave
         rb_in->push(message);
-
     }
 
     add_test_queries(rb_in, &ctx);
