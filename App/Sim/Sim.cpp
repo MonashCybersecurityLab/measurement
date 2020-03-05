@@ -74,7 +74,7 @@ void parse_flow_id(struct FLOW_KEY *key) {
 
 void add_test_queries(struct ctx_gcm_s *ctx) {
     // Add test queries
-    for(int i = FLOW_SIZE; i <= CARDINALITY; i++) {
+    for(int i = FLOW_SIZE; i <= ENTROPY; i++) {
         Message *query_message = pop_front(&global_pool);
         switch ((message_type) i) {
             case FLOW_SIZE:

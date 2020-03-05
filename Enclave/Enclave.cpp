@@ -85,6 +85,14 @@ void ecall_run() {
                     push_back(output_queue, out_message);
                 }
                     break;
+                case ENTROPY:
+                {
+                    float entropy = query_entropy(cur_statistics);
+                    Message *out_message = pop_front(message_pool);
+                    pack_message(out_message, ENTROPY, &ctx, (uint8_t*) &entropy, sizeof(float), 1);
+                    push_back(output_queue, out_message);
+                }
+                    break;
                 case STOP:
                     return;
                 default:

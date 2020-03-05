@@ -23,7 +23,7 @@ void add_trace(CMSketch<4, 3> *sketch, unordered_map<string, float> &statistics,
     }
 }
 
-vector<pair<string, float>> query_heavy_hitter(unordered_map<string, float> &statistics, int k) {
+vector<pair<string, float>> query_heavy_hitter(unordered_map<string, float> const &statistics, int k) {
     vector<pair<string, float>> top_k(k);
 
     std::partial_sort_copy(statistics.begin(), statistics.end(),
@@ -34,4 +34,12 @@ vector<pair<string, float>> query_heavy_hitter(unordered_map<string, float> &sta
             });
 
     return top_k;
+}
+
+float query_entropy(unordered_map<string, float> const &statistics) {
+    float entropy = 0.0f;
+    for(auto & it : statistics) {
+        entropy += it.second * log2(it.second);
+    }
+    return -entropy;
 }
