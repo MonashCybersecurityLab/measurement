@@ -26,7 +26,8 @@ void ocall_print_string(const char *str) {
 }
 
 void ocall_alloc_message(void *ptr, size_t size) {
-    ptr = (uint8_t*) malloc(size);
+    Message *msg = (Message*) ptr;
+    msg->payload = (uint8_t*) malloc(size);
 }
 
 void ocall_free_message(void *ptr) {
@@ -91,6 +92,9 @@ void add_test_queries(struct ctx_gcm_s *ctx) {
             case CARDINALITY:
                 pack_message(query_message, (message_type) i, ctx, nullptr, 0, 0);
                 break;
+            case ENTROPY:
+                pack_message(query_message, (message_type) i, ctx, nullptr, 0, 0);
+                break;
             default:
                 break;
         }
@@ -106,7 +110,6 @@ void add_test_queries(struct ctx_gcm_s *ctx) {
 }
 
 void process_result(struct ctx_gcm_s *ctx) {
-
     while (!is_empty_queue(&mbox[1])) {
         Message *res_message = pop_front(&mbox[1]);
         uint8_t valid_payload[res_message->header.payload_size - GCM_IV_SIZE];
@@ -135,9 +138,19 @@ void process_result(struct ctx_gcm_s *ctx) {
                 printf("Cardinality of Flows: %d\n", *card);
             }
                 break;
+            case ENTROPY:
+            {
+                float *entropy = (float*) valid_payload;
+                printf("Entropy of Flows: %.3f\n", *entropy);
+            }
+                break;
             default:
                 break;
         }
+
+        // free incoming message from the enclave and return the container to the global pool
+        free_message(res_message);
+        push_back(&global_pool, res_message);
     }
 }
 

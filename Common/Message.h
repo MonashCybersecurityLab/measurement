@@ -18,6 +18,7 @@ enum message_type {
     HEAVY_HITTER,   // query the heavy hitter
     HEAVY_CHANGE,   // query the heavy change
     CARDINALITY,    // query the cardinality
+    ENTROPY,        // query the flow entropy
     STOP            // terminate the system
 };
 
@@ -30,7 +31,6 @@ struct __attribute__((aligned(64))) header_s {
 };
 
 #define HEADER_SIZE	(sizeof(struct header_s))
-#define PL_SIZE 65536
 
 struct __attribute__((aligned(64))) message_s {
     struct header_s header;

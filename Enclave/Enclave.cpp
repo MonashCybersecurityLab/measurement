@@ -91,6 +91,7 @@ void ecall_run() {
                     break;
             }
 
+            // free incoming message from the simulator and return the container to the global pool
             ocall_free_message(in_message);
             push_back(message_pool, in_message);
         }
