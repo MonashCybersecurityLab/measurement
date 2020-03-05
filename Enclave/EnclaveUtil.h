@@ -6,7 +6,7 @@
 #include "sgx_trts.h"
 #include "Enclave_t.h"
 #include "../Common/Message.h"
-#include "../Common/Ringbuffer.h"
+#include "../Common/Queue.h"
 
 using namespace std;
 

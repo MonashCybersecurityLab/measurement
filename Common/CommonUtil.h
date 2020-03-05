@@ -10,6 +10,9 @@
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 
+
+#define MAX_POOL_SIZE 16384
+
 #define GCM_KEY_SIZE	16
 #define GCM_IV_SIZE     12
 #define GCM_MAC_SIZE    16
@@ -30,7 +33,6 @@ struct FLOW_KEY {   // 13 bytes
 };
 
 #define FLOW_ID_SIZE sizeof(struct FIVE_TUPLE)
-
 #define HEAVY_HITTER_SIZE 20
 
 #ifdef __cplusplus

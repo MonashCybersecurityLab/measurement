@@ -18,10 +18,10 @@ void pack_message_with_file(Message *message, enum message_type type, struct ctx
     char *data = (char*) malloc(size);
     fread(data, 1, size, pFile);
 
-    pack_message(message, type, ctx, (uint8_t*) data, size);
+    pack_message(message, type, ctx, (uint8_t*) data, size, 0);
 }
 
-void pack_message(Message *message, enum message_type type, struct ctx_gcm_s *ctx, uint8_t *payload, int size) {
+void pack_message(Message *message, enum message_type type, struct ctx_gcm_s *ctx, uint8_t *payload, int size, int is_enclave) {
     message->header.type = type;
     if(size != 0) {
         message->header.payload_size = GCM_IV_SIZE + size;
@@ -33,6 +33,7 @@ void pack_message(Message *message, enum message_type type, struct ctx_gcm_s *ct
     // has a valid payload
     if(payload != NULL) {
         message->payload = (uint8_t*) malloc(GCM_IV_SIZE + size);
+
         // attach the IV at the beginning of payload
         memcpy(message->payload, ctx->IV, GCM_IV_SIZE);
 
@@ -49,4 +50,10 @@ int unpack_message(Message *message, struct ctx_gcm_s *ctx, uint8_t *res) {
                 message->header.mac,
                 ctx->key, message->payload,
                 res);
+}
+
+void free_message(Message *message) {
+    if(in_enclave()) {
+        ocall_free(message->payload);
+    }
 }

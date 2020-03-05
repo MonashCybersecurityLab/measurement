@@ -6,8 +6,7 @@
 
 #include "sgx_urts.h"
 #include "../Enclave_u.h"
-#include "../../Common/Message.h"
-#include "../../Common/Ringbuffer.h"
+#include "../../Common/Queue.h"
 
 #define ENCLAVE_FILE "Enclave.signed.so"
 
@@ -19,8 +18,24 @@ using namespace std;
 typedef vector<FIVE_TUPLE> TRACE;
 TRACE traces[END_FILE_NO - START_FILE_NO + 1];
 
+Queue global_pool;
+Queue mbox[2];
+
 void ocall_print_string(const char *str) {
     printf("%s\n", str);
+}
+
+void ocall_alloc_message(void *ptr, size_t size) {
+    ptr = (uint8_t*) malloc(size);
+}
+
+void ocall_free_message(void *ptr) {
+    Message *msg = (Message*) ptr;
+    if(msg->payload != nullptr) {
+        free(msg->payload);
+    }
+    memset(msg, 0, sizeof(Message));
+
 }
 
 void ReadInTraces(const char *trace_prefix) {
@@ -56,48 +71,48 @@ void parse_flow_id(struct FLOW_KEY *key) {
     printf("proto: %d\n", key->proto);
 }
 
-void add_test_queries(Ringbuffer<Message, 1024> *query_buf, struct ctx_gcm_s *ctx) {
+void add_test_queries(struct ctx_gcm_s *ctx) {
     // Add test queries
     for(int i = FLOW_SIZE; i <= CARDINALITY; i++) {
-        Message query_message;
+        Message *query_message = pop_front(&global_pool);
         switch ((message_type) i) {
             case FLOW_SIZE:
-                pack_message(&query_message, (message_type) i, ctx, (uint8_t*) traces[0].data(), FLOW_ID_SIZE);
+                pack_message(query_message, (message_type) i, ctx, (uint8_t*) traces[0].data(), FLOW_ID_SIZE, 0);
                 break;
             case HEAVY_HITTER:
                 {
                     int k = HEAVY_HITTER_SIZE; // top-20 flows as the heavy hitters
-                    pack_message(&query_message, (message_type) i, ctx, (uint8_t*) &k, sizeof(int));
+                    pack_message(query_message, (message_type) i, ctx, (uint8_t*) &k, sizeof(int), 0);
                 }
                 break;
             case HEAVY_CHANGE:
-                pack_message(&query_message, (message_type) i, ctx, nullptr, 0);
+                pack_message(query_message, (message_type) i, ctx, nullptr, 0, 0);
                 break;
             case CARDINALITY:
-                pack_message(&query_message, (message_type) i, ctx, nullptr, 0);
+                pack_message(query_message, (message_type) i, ctx, nullptr, 0, 0);
                 break;
             default:
                 break;
         }
         // add into the buffer
-        query_buf->push(query_message);
+        push_back(&mbox[0], query_message);
     }
 
     // Add end message
-    Message end_message;
-    pack_message(&end_message, STOP, ctx, nullptr, 0);
+    Message *end_message = pop_front(&global_pool);
+    pack_message(end_message, STOP, ctx, nullptr, 0, 0);
 
-    query_buf->push(end_message);
+    push_back(&mbox[0], end_message);
 }
 
-void process_result(Ringbuffer<Message, 1024> *res_buf, struct ctx_gcm_s *ctx) {
-    Message res_message;
-    while (!res_buf->isEmpty()) {
-        res_buf->pop(res_message);
-        uint8_t valid_payload[res_message.header.payload_size - GCM_IV_SIZE];
-        unpack_message(&res_message, ctx, valid_payload);
+void process_result(struct ctx_gcm_s *ctx) {
 
-        switch (res_message.header.type) {
+    while (!is_empty_queue(&mbox[1])) {
+        Message *res_message = pop_front(&mbox[1]);
+        uint8_t valid_payload[res_message->header.payload_size - GCM_IV_SIZE];
+        unpack_message(res_message, ctx, valid_payload);
+
+        switch (res_message->header.type) {
             case FLOW_SIZE:
             {
                 struct FLOW_KEY *flow_key = (struct FLOW_KEY*) valid_payload;
@@ -146,11 +161,19 @@ int main() {
         return 1;
     }
 
-    Ringbuffer<Message, 1024> *rb_in = new Ringbuffer<Message, 1024>();
-    Ringbuffer<Message, 1024> *rb_out = new Ringbuffer<Message, 1024>();
+    queue_init(&global_pool);
+
+    queue_init(&mbox[0]);
+    queue_init(&mbox[1]);
+
+    for(int i = 0; i < MAX_POOL_SIZE; i++) {
+        Message *tmp = (Message *) malloc(sizeof(Message));
+        memset(tmp, 0, sizeof(Message));
+        push_back(&global_pool, tmp);
+    }
 
     // initialise the enclave with message queues
-    ecall_init(eid, rb_in, rb_out, ctx.key, GCM_KEY_SIZE);
+    ecall_init(eid, &global_pool, &mbox[0], &mbox[1], ctx.key, GCM_KEY_SIZE);
 
     // use another thread to process requests
     pthread_t pid;
@@ -165,20 +188,21 @@ int main() {
         sprintf(datafileName, "%s%d.dat", "data/", datafileCnt - 1);
 
         // pack and offline data
-        Message message;
-        pack_message_with_file(&message, STAT, &ctx, datafileName);
+        Message *message = pop_front(&global_pool);
+        pack_message_with_file(message, STAT, &ctx, datafileName);
 
         // send to the enclave
-        rb_in->push(message);
+        push_back(&mbox[0], message);
+
     }
 
-    add_test_queries(rb_in, &ctx);
+    add_test_queries(&ctx);
 
     void *status;
     pthread_join(pid, &status);
 
     // get query results
-    process_result(rb_out, &ctx);
+    process_result(&ctx);
 
     // clean up
 

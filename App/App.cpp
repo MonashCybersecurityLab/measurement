@@ -2,7 +2,6 @@
 
 #include "sgx_urts.h"
 #include "Enclave_u.h"
-#include "../Common/Ringbuffer.h"
 
 #define ENCLAVE_FILE "Enclave.signed.so"
 
