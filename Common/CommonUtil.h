@@ -32,6 +32,9 @@ struct FLOW_KEY {   // 13 bytes
     uint8_t proto;
 };
 
+#define SKETCH_KEY_SIZE 4
+#define SKETCH_HASH 3
+
 #define FLOW_ID_SIZE sizeof(struct FIVE_TUPLE)
 #define HEAVY_HITTER_SIZE 20
 

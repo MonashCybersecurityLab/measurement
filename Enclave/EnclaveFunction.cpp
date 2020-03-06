@@ -36,6 +36,15 @@ vector<pair<string, float>> query_heavy_hitter(unordered_map<string, float> cons
     return top_k;
 }
 
+void query_dist(CMSketch<SKETCH_KEY_SIZE, SKETCH_HASH> *sketch, unordered_map<string, float> const &statistics, uint32_t *dist) {
+    // reset the dist array
+    memset(dist, 0, 256 * sizeof(uint32_t));
+    // loop in the statistics to get the distribution info
+    for(auto & it : statistics) {
+        dist[sketch->query((uint8_t*) it.first.c_str())]++;
+    }
+}
+
 float query_entropy(unordered_map<string, float> const &statistics) {
     float entropy = 0.0f;
     for(auto & it : statistics) {

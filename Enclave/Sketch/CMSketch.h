@@ -70,7 +70,7 @@ public:
 
     uint8_t query(uint8_t * key)
     {
-        uint8_t ret = 1 << 7;
+        uint8_t ret = 255;
         for (int i = 0; i < d; i++) {
             int index = (SpookyHash::Hash32(key, key_len, i)) % w;
             uint8_t tmp = counters[i][index];

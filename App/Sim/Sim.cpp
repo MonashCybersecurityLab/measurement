@@ -87,15 +87,13 @@ void add_test_queries(struct ctx_gcm_s *ctx) {
                 }
                 break;
             case HEAVY_CHANGE:
+            {
                 pack_message(query_message, (message_type) i, ctx, nullptr, 0, 0);
-                break;
-            case CARDINALITY:
-                pack_message(query_message, (message_type) i, ctx, nullptr, 0, 0);
-                break;
-            case ENTROPY:
-                pack_message(query_message, (message_type) i, ctx, nullptr, 0, 0);
+            }
+
                 break;
             default:
+                pack_message(query_message, (message_type) i, ctx, nullptr, 0, 0);
                 break;
         }
         // add into the buffer
@@ -132,10 +130,30 @@ void process_result(struct ctx_gcm_s *ctx) {
                 }
             }
                 break;
+            case HEAVY_CHANGE:
+            {
+
+            }
+                break;
             case CARDINALITY:
             {
                 int *card = (int*) valid_payload;
                 printf("Cardinality of Flows: %d\n", *card);
+            }
+                break;
+            case DIST:
+            {
+                uint32_t *dist = (uint32_t*) valid_payload;
+                printf("Flow Size Distribution <Flow Size, Count>:\n");
+                for(int i = 0, j = 0; i < 256; i++) {
+                    printf("<%d, %d>", i, dist[i]);
+                    if(++j % 10 == 0) {
+                        printf("\n");
+                    } else {
+                        printf("\t");
+                    }
+                }
+                printf("\n");
             }
                 break;
             case ENTROPY:
@@ -216,8 +234,6 @@ int main() {
 
     // get query results
     process_result(&ctx);
-
-    // clean up
 
     // destroy the enclave
     sgx_destroy_enclave(eid);

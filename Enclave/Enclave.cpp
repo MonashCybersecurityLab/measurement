@@ -4,7 +4,7 @@ using namespace std;
 
 struct ctx_gcm_s ctx;
 
-CMSketch<4, 3> *sketch = nullptr;
+CMSketch<SKETCH_KEY_SIZE, SKETCH_HASH> *sketch = nullptr;
 
 Queue *message_pool = nullptr;
 Queue *input_queue = nullptr;
@@ -20,7 +20,7 @@ void ecall_init(void *pool, void *queue_in, void *queue_out, unsigned char *ovs_
     input_queue = (Queue*) queue_in;
     output_queue = (Queue*) queue_out;
 
-    sketch = new CMSketch<4, 3>(600 * 1024);
+    sketch = new CMSketch<SKETCH_KEY_SIZE, SKETCH_HASH>(600 * 1024);
     sketch->print_basic_info();
 }
 
@@ -71,15 +71,26 @@ void ecall_run() {
                         for(int i = 0; i < res_vector.size(); i++) {
                             memcpy(heavy_hitter_buffer + i * FLOW_ID_SIZE, res_vector[i].first.c_str(), FLOW_ID_SIZE);
                         }
-                        // add a flow size response
+                        // add a Heavy Hitters response
                         Message *out_message = pop_front(message_pool);
                         pack_message(out_message, HEAVY_HITTER, &ctx, heavy_hitter_buffer, *((int*)k) * FLOW_ID_SIZE, 1);
                         push_back(output_queue, out_message);
                     }
                     break;
+                case DIST:
+                {
+                    uint32_t dist[256];
+                    query_dist(sketch, cur_statistics, dist);
+                    // add a dist response
+                    Message *out_message = pop_front(message_pool);
+                    pack_message(out_message, DIST, &ctx, (uint8_t*) dist, 256 * sizeof(uint32_t), 1);
+                    push_back(output_queue, out_message);
+                }
+                    break;
                 case CARDINALITY:
                 {
                     int stat_size = cur_statistics.size();
+                    // add a cardinality response
                     Message *out_message = pop_front(message_pool);
                     pack_message(out_message, CARDINALITY, &ctx, (uint8_t*) &stat_size, sizeof(int), 1);
                     push_back(output_queue, out_message);
@@ -88,6 +99,7 @@ void ecall_run() {
                 case ENTROPY:
                 {
                     float entropy = query_entropy(cur_statistics);
+                    // add an entropy response
                     Message *out_message = pop_front(message_pool);
                     pack_message(out_message, ENTROPY, &ctx, (uint8_t*) &entropy, sizeof(float), 1);
                     push_back(output_queue, out_message);

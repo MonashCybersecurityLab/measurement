@@ -18,6 +18,7 @@ enum message_type {
     HEAVY_HITTER,   // query the heavy hitter
     HEAVY_CHANGE,   // query the heavy change
     CARDINALITY,    // query the cardinality
+    DIST,           // query the flow distribution
     ENTROPY,        // query the flow entropy
     STOP            // terminate the system
 };
