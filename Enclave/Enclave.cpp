@@ -63,9 +63,9 @@ void ecall_run() {
                     // query the heavy hitter regarding a pre-defined K
                     if(in_message->header.payload_size > 0) {
                         // query the statistics module
-                        uint8_t k[4];
+                        uint8_t k[sizeof(int)];
                         unpack_message(in_message, &ctx, k);
-                        vector<pair<string, float>> res_vector = query_heavy_hitter(cur_statistics, *((int*)k));
+                        vector<pair<string, float>> res_vector = query_heavy_hitter(cur_statistics, *((int*) k));
                         // convert vector to uint8_t
                         uint8_t heavy_hitter_buffer[res_vector.size() * FLOW_ID_SIZE];
                         for(int i = 0; i < res_vector.size(); i++) {
@@ -73,9 +73,29 @@ void ecall_run() {
                         }
                         // add a Heavy Hitters response
                         Message *out_message = pop_front(message_pool);
-                        pack_message(out_message, HEAVY_HITTER, &ctx, heavy_hitter_buffer, *((int*)k) * FLOW_ID_SIZE, 1);
+                        pack_message(out_message, HEAVY_HITTER, &ctx, heavy_hitter_buffer, res_vector.size() * FLOW_ID_SIZE, 1);
                         push_back(output_queue, out_message);
                     }
+                    break;
+                case HEAVY_CHANGE:
+                {
+                    // query the heavy change regarding a pre-defined T
+                    if(in_message->header.payload_size > 0) {
+                        // query the statistics module
+                        uint8_t T[sizeof(float)];
+                        unpack_message(in_message, &ctx, T);
+                        vector<string> res_vector = query_heavy_change(prep_statistics, cur_statistics, *((float*) T));
+                        // convert vector to uint8_t
+                        uint8_t heavy_change_buffer[res_vector.size() * FLOW_ID_SIZE];
+                        for(int i = 0; i < res_vector.size(); i++) {
+                            memcpy(heavy_change_buffer + i * FLOW_ID_SIZE, res_vector[i].c_str(), FLOW_ID_SIZE);
+                        }
+                        // add a Heavy Changes response
+                        Message *out_message = pop_front(message_pool);
+                        pack_message(out_message, HEAVY_CHANGE, &ctx, heavy_change_buffer, res_vector.size() * FLOW_ID_SIZE, 1);
+                        push_back(output_queue, out_message);
+                    }
+                }
                     break;
                 case DIST:
                 {

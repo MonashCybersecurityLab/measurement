@@ -36,6 +36,17 @@ vector<pair<string, float>> query_heavy_hitter(unordered_map<string, float> cons
     return top_k;
 }
 
+vector<string> query_heavy_change(unordered_map<string, float> &prev_statistics, unordered_map<string, float> &cur_statistics, float T) {
+    vector<string> detected_flow;
+    // scan the cur statistics
+    for(auto & it : cur_statistics) {
+        if(fabs(prev_statistics[it.first] - it.second) >= T) {
+            detected_flow.push_back(it.first);
+        }
+    }
+    return detected_flow;
+}
+
 void query_dist(CMSketch<SKETCH_KEY_SIZE, SKETCH_HASH> *sketch, unordered_map<string, float> const &statistics, uint32_t *dist) {
     // reset the dist array
     memset(dist, 0, 256 * sizeof(uint32_t));

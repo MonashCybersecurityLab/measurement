@@ -88,9 +88,9 @@ void add_test_queries(struct ctx_gcm_s *ctx) {
                 break;
             case HEAVY_CHANGE:
             {
-                pack_message(query_message, (message_type) i, ctx, nullptr, 0, 0);
+                float T = HEAVY_CHANGE_THRESHOLD;
+                pack_message(query_message, (message_type) i, ctx, (uint8_t*) &T, sizeof(float), 0);
             }
-
                 break;
             default:
                 pack_message(query_message, (message_type) i, ctx, nullptr, 0, 0);
@@ -132,7 +132,11 @@ void process_result(struct ctx_gcm_s *ctx) {
                 break;
             case HEAVY_CHANGE:
             {
-
+                printf("Heavy change list:\n");
+                int size = (res_message->header.payload_size - GCM_IV_SIZE) / FLOW_ID_SIZE;
+                for(int i = 0; i < size; i++) {
+                    parse_flow_id((struct FLOW_KEY*) (valid_payload + i * FLOW_ID_SIZE));
+                }
             }
                 break;
             case CARDINALITY:

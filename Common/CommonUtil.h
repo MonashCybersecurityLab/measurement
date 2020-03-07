@@ -37,6 +37,7 @@ struct FLOW_KEY {   // 13 bytes
 
 #define FLOW_ID_SIZE sizeof(struct FIVE_TUPLE)
 #define HEAVY_HITTER_SIZE 20
+#define HEAVY_CHANGE_THRESHOLD 0.05
 
 #ifdef __cplusplus
 extern "C" {
