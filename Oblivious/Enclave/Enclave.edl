@@ -1,0 +1,14 @@
+enclave {
+    from "sgx_tstdc.edl" import *;
+
+    trusted {
+
+        public void ecall_init([user_check] void *pool, [user_check] void *queue_in, [user_check] void *queue_out, [in, size = key_size] unsigned char *ctx, size_t key_size);
+        public void ecall_run();
+    };
+    untrusted {
+        void ocall_print_string([in, string] const char *str);
+        void ocall_alloc_message([user_check] void *ptr, size_t size);
+        void ocall_free_message([user_check] void *ptr);
+    };
+};

@@ -13,9 +13,17 @@ add_custom_target(strawman_HW
         COMMAND make -j8 SGX_MODE=HW SGX_DEBUG=1
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Strawman)
 
+add_custom_target(oblivious
+        COMMAND make -j8 SGX_MODE=SIM SGX_DEBUG=1
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Oblivious)
+
+add_custom_target(oblivious_HW
+        COMMAND make -j8 SGX_MODE=HW SGX_DEBUG=1
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Oblivious)
+
 add_custom_target(cleanup
         COMMAND make -j8 clean
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Strawman)
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 # include root dir
 INCLUDE_DIRECTORIES(Enclave/SpookyHash Enclave/Sketch)
