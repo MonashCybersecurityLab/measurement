@@ -5,22 +5,22 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_VERBOSE_MAKEFILE 1)
 
 # Use cumtom target to build SGX program
-add_custom_target(measurement
+add_custom_target(strawman
         COMMAND make -j8 SGX_MODE=SIM SGX_DEBUG=1
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Strawman)
 
-add_custom_target(measurement_HW
+add_custom_target(strawman_HW
         COMMAND make -j8 SGX_MODE=HW SGX_DEBUG=1
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Strawman)
 
 add_custom_target(cleanup
         COMMAND make -j8 clean
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Strawman)
 
 # include root dir
 INCLUDE_DIRECTORIES(Enclave/SpookyHash Enclave/Sketch)
 
 
-ADD_EXECUTABLE(TestSpookyV2 Test/TestSpookyV2.cpp Enclave/SpookyHash/SpookyV2.cpp)
+ADD_EXECUTABLE(TestSpookyV2 Strawman/Test/TestSpookyV2.cpp Strawman/Enclave/SpookyHash/SpookyV2.cpp)
 
-ADD_EXECUTABLE(TestCMSketch Test/TestCMSketch.cpp Enclave/SpookyHash/SpookyV2.cpp)
+ADD_EXECUTABLE(TestCMSketch Strawman/Test/TestCMSketch.cpp Strawman/Enclave/SpookyHash/SpookyV2.cpp)

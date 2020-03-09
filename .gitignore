@@ -5,7 +5,6 @@
 *.so
 *.o
 /.config_SIM_DEBUG_x64
-/app
-/sim
+app
 Enclave_t.*
 Enclave_u.*

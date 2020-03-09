@@ -5,7 +5,7 @@
 #include <arpa/inet.h>
 
 #include "sgx_urts.h"
-#include "../Enclave_u.h"
+#include "Enclave_u.h"
 #include "../../Common/Queue.h"
 
 #define ENCLAVE_FILE "Enclave.signed.so"
@@ -81,10 +81,10 @@ void add_test_queries(struct ctx_gcm_s *ctx) {
                 pack_message(query_message, (message_type) i, ctx, (uint8_t*) traces[0].data(), FLOW_ID_SIZE, 0);
                 break;
             case HEAVY_HITTER:
-                {
-                    int k = HEAVY_HITTER_SIZE; // top-20 flows as the heavy hitters
-                    pack_message(query_message, (message_type) i, ctx, (uint8_t*) &k, sizeof(int), 0);
-                }
+            {
+                int k = HEAVY_HITTER_SIZE; // top-20 flows as the heavy hitters
+                pack_message(query_message, (message_type) i, ctx, (uint8_t*) &k, sizeof(int), 0);
+            }
                 break;
             case HEAVY_CHANGE:
             {
@@ -215,12 +215,12 @@ int main() {
     pthread_create(&pid, NULL, e_thread, (void*) &eid);
 
     // read offline data
-    ReadInTraces("data/");
+    ReadInTraces("../data/");
 
     // submit trace to the enclave
     for(int datafileCnt = START_FILE_NO; datafileCnt <= END_FILE_NO; ++datafileCnt) {
         char datafileName[100];
-        sprintf(datafileName, "%s%d.dat", "data/", datafileCnt - 1);
+        sprintf(datafileName, "%s%d.dat", "../data/", datafileCnt - 1);
 
         // pack and offline data
         Message *message = pop_front(&global_pool);
