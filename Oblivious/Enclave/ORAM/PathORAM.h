@@ -5,7 +5,8 @@
 #include <cmath>
 #include <unordered_map>
 #include <vector>
-#include "Stash.h"
+
+#include "../../../Common/CommonUtil.h"
 
 //#define ORAM_DEBUG_PRINT
 
@@ -36,7 +37,7 @@ private:
 
     // operators on stash
     vector<uint32_t> get_intersect_blocks(uint32_t x, int p_depth);   // retrieve the blocks in the given path and depths
-    uint8_t* read_stash(int bid);
+    void read_stash(int bid, uint8_t *b);
     void write_stash(int bid, uint8_t *b);
 
     enum Op {

@@ -10,8 +10,10 @@
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 
-
 #define MAX_POOL_SIZE 16384
+
+#define ORAM_DATA_SIZE 1
+#define ORAM_BUCKET_SIZE 5
 
 #define GCM_KEY_SIZE	16
 #define GCM_IV_SIZE     12

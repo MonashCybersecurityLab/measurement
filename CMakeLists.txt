@@ -34,6 +34,6 @@ ADD_EXECUTABLE(TestSpookyV2 Strawman/Test/TestSpookyV2.cpp Strawman/Enclave/Spoo
 
 ADD_EXECUTABLE(TestCMSketch Strawman/Test/TestCMSketch.cpp Strawman/Enclave/SpookyHash/SpookyV2.cpp)
 
-ADD_EXECUTABLE(TestPathORAM Oblivious/Test/TestPathORAM.cpp Oblivious/Enclave/ORAM/PathORAM.cpp Oblivious/Enclave/SpookyHash/SpookyV2.cpp)
+ADD_EXECUTABLE(TestObliviousSketch Oblivious/Test/TestObliviousSketch.cpp Oblivious/Enclave/ORAM/PathORAM.cpp Oblivious/Enclave/SpookyHash/SpookyV2.cpp)
 
-TARGET_LINK_LIBRARIES(TestPathORAM OpenSSL::SSL)
+TARGET_LINK_LIBRARIES(TestObliviousSketch OpenSSL::SSL)

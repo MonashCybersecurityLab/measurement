@@ -52,6 +52,8 @@ uint32_t PathORAM::get_block_count() {
 }
 
 uint32_t PathORAM::random_path() {
+    // assign a random path to the leaf
+    // note that the leaf id is between [0, N/2]
     uint32_t rand;
     RAND_bytes((uint8_t*) &rand, sizeof(uint32_t));
     return rand % (N / 2);
@@ -66,7 +68,8 @@ void PathORAM::fetch_path(uint32_t x) {
         for(int z = 0; z < Z; z++) {
             if(bucket[z].id != 1 << 31) {
                 // insert into the stash if the block is not a dummy block
-                stash.insert({bucket[z].id, bucket[z].block});
+                stash[bucket[z].id] = (uint8_t*) malloc(B);
+                memcpy(stash[bucket[z].id], bucket[z].block, B);
             }
         }
     }
@@ -82,6 +85,7 @@ void PathORAM::write_path(uint32_t x) {
             bucket[z].id = valid_blocks[z];
             memcpy(bucket[z].block, stash[bucket[z].id], B);
             // the block is no longer needs to be stored in the stash
+            free(stash[bucket[z].id]);
             stash.erase(bucket[z].id);
         }
         // fill the bucket with dummy blocks
@@ -93,8 +97,8 @@ void PathORAM::write_path(uint32_t x) {
 }
 
 uint32_t PathORAM::get_bucket_on_path(uint32_t leaf, int p_depth) {
-    leaf += N / 2;
-    for(int d = depth; d >= p_depth + 1; d--) {
+    leaf += N / 2;  // add the offset to the leaf id in order to convert it to the real bucket id
+    for(int d = depth; d >= p_depth + 1; d--) {     // find the parent bucket iteratively
         leaf = (leaf + 1) / 2 - 1;
     }
     return leaf;
@@ -114,8 +118,12 @@ vector<uint32_t> PathORAM::get_intersect_blocks(uint32_t x, int p_depth) {
     return valid_blocks;
 }
 
-uint8_t* PathORAM::read_stash(int bid) {
-    return stash[bid];
+void PathORAM::read_stash(int bid, uint8_t *b) {
+    if(stash.find(bid) == stash.end()) {
+        memset(b, 0, B);
+    } else {
+        memcpy(b, stash[bid], B);
+    }
 }
 
 void PathORAM::write_stash(int bid, uint8_t *b) {
@@ -131,7 +139,7 @@ void PathORAM::access(Op op, int bid, uint8_t *&b) {
     // process the operation
     if(op == READ) {
         // read the block
-        b = read_stash(bid);
+        read_stash(bid, b);
     } else {
         // write to the stash
         write_stash(bid, b);
@@ -141,7 +149,7 @@ void PathORAM::access(Op op, int bid, uint8_t *&b) {
 }
 
 uint8_t* PathORAM::read(int bid) {
-    uint8_t *b;
+    auto *b = (uint8_t*) malloc(B);
     access(READ, bid, b);
     return b;
 }
