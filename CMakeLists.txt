@@ -25,10 +25,15 @@ add_custom_target(cleanup
         COMMAND make -j8 clean
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
+FIND_PACKAGE(OpenSSL REQUIRED)
+
 # include root dir
 INCLUDE_DIRECTORIES(Enclave/SpookyHash Enclave/Sketch)
-
 
 ADD_EXECUTABLE(TestSpookyV2 Strawman/Test/TestSpookyV2.cpp Strawman/Enclave/SpookyHash/SpookyV2.cpp)
 
 ADD_EXECUTABLE(TestCMSketch Strawman/Test/TestCMSketch.cpp Strawman/Enclave/SpookyHash/SpookyV2.cpp)
+
+ADD_EXECUTABLE(TestPathORAM Oblivious/Test/TestPathORAM.cpp Oblivious/Enclave/ORAM/PathORAM.cpp Oblivious/Enclave/SpookyHash/SpookyV2.cpp)
+
+TARGET_LINK_LIBRARIES(TestPathORAM OpenSSL::SSL)
