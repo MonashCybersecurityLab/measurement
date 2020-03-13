@@ -80,7 +80,7 @@ endif
 Crypto_Library_Name := sgx_tcrypto
 
 Enclave_C_Files := $(wildcard ../../Common/*.c)
-Enclave_Cpp_Files := $(wildcard *.cpp) $(wildcard SpookyHash/*.cpp) $(wildcard ORAM/*.cpp)
+Enclave_Cpp_Files := $(wildcard *.cpp) $(wildcard SpookyHash/*.cpp)
 Enclave_Include_Paths := -I../../Common -I. -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/libcxx -I/opt/intel/sgxssl/include
 
 Enclave_C_Flags := $(SGX_COMMON_CFLAGS) -nostdinc -fvisibility=hidden -fpie -fstack-protector $(Enclave_Include_Paths)

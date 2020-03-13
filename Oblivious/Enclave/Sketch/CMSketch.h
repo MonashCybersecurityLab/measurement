@@ -16,7 +16,7 @@ private:
     int memory_in_bytes = 0;
 
     int w = 0;
-    PathORAM *counters;
+    PathORAM<ORAM_DATA_SIZE> *counters;
 
 public:
     CMSketch() = default;
@@ -33,22 +33,18 @@ public:
         this->memory_in_bytes = bytes;
         // initialise the oram
         int num_of_bucket = memory_in_bytes / ORAM_DATA_SIZE / ORAM_BUCKET_SIZE;
-        int oram_depth = ceil(log2(num_of_bucket));
-        counters = new PathORAM(oram_depth, ORAM_BUCKET_SIZE, ORAM_DATA_SIZE);
+        int oram_depth = ceil(log2(num_of_bucket)) - 1;
+        counters = new PathORAM<ORAM_DATA_SIZE>(oram_depth, ORAM_BUCKET_SIZE);
 
         w = memory_in_bytes / d;
     }
 
     void clear() {
-        for(int i = 0; i < d; i++) {
-            delete[] counters[i];
-        }
+        delete counters;
     }
 
     void reset() {
-        for(int i = 0; i < d; i++) {
-            memset(counters[i], 0, w);
-        }
+        counters->clear();
     }
 
     void print_basic_info()
@@ -62,10 +58,10 @@ public:
     {
         for (int i = 0; i < d; i++) {
             uint32_t index = (SpookyHash::Hash32(key, key_len, i)) % w;
-            uint8_t *value = counters->read(index);
-            (*value) += count;
+            uint8_t value[ORAM_DATA_SIZE];
+            counters->read(index, value);
+            value[0] += count;
             counters->write(index, value);
-            //counters[i][index] += count;
         }
     }
 
@@ -74,8 +70,9 @@ public:
         uint8_t ret = 255;
         for (int i = 0; i < d; i++) {
             uint32_t index = (SpookyHash::Hash32(key, key_len, i)) % w;
-            uint8_t tmp = *(counters->read(index));
-            ret = min(ret, tmp);
+            uint8_t tmp[ORAM_DATA_SIZE];
+            counters->read(index, tmp);
+            ret = min(ret, tmp[0]);
         }
         return ret;
     }

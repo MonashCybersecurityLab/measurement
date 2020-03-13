@@ -27,7 +27,7 @@ private:
 
     Block *store;         // a bucket list
     uint32_t *position;     // position map
-    unordered_map<uint32_t, uint8_t*> stash;
+    vector<uint32_t, uint8_t[B]> stash;
 
     // operators on the tree
     uint32_t random_path() {
@@ -45,9 +45,8 @@ private:
             Block *bucket = store + get_bucket_on_path(x, d) * Z;
             // put the block into the stash
             for(int z = 0; z < Z; z++) {
-                if(bucket[z].id != 1 << 31) {
+                if(bucket[z].id != 0xFFFFFFFF) {
                     // insert into the stash if the block is not a dummy block
-                    stash[bucket[z].id] = (uint8_t*) malloc(B);
                     memcpy(stash[bucket[z].id], bucket[z].block, B);
                 }
             }
@@ -64,12 +63,11 @@ private:
                 bucket[z].id = valid_blocks[z];
                 memcpy(bucket[z].block, stash[bucket[z].id], B);
                 // the block is no longer needs to be stored in the stash
-                free(stash[bucket[z].id]);
                 stash.erase(bucket[z].id);
             }
             // fill the bucket with dummy blocks
             for(int z = valid_blocks.size(); z < Z; z++) {
-                bucket[z].id = 1 << 31;
+                bucket[z].id = 0xFFFFFFFF;
                 memset(bucket[z].block, 0, B);
             }
         }
@@ -108,7 +106,7 @@ private:
     }
 
     void write_stash(int bid, uint8_t *b) {
-        stash[bid] = b;
+        memcpy(stash[bid], b, B);
     }
 
     enum Op {
@@ -116,7 +114,7 @@ private:
         WRITE
     };
 
-    void access(Op op, int bid, uint8_t *&b) {
+    void access(Op op, int bid, uint8_t *b) {
         uint32_t x = position[bid];
         // randomise the path again
         position[bid] = random_path();
@@ -165,7 +163,6 @@ public:
     ~PathORAM() {
         // clear the position map and the stash
         clear();
-
         // remove data
         delete position;
         delete store;
@@ -183,10 +180,8 @@ public:
         return N * Z;
     }
 
-    uint8_t* read(int bid) {
-        auto *b = (uint8_t*) malloc(B);
+    void read(int bid, uint8_t *b) {
         access(READ, bid, b);
-        return b;
     }
 
     void write(int bid, uint8_t *b) {

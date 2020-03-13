@@ -4,7 +4,7 @@
 
 #include "EnclaveFunction.h"
 
-void add_trace(CMSketch<4, 3> *sketch, unordered_map<string, float> &statistics, uint8_t *trace, int size) {
+void add_trace(CMSketch<SKETCH_KEY_SIZE, SKETCH_HASH> *sketch, unordered_map<string, float> &statistics, uint8_t *trace, int size) {
     // remove the last statistics
     sketch->reset();
     statistics.clear();
