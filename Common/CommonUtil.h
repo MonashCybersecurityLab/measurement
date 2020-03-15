@@ -14,6 +14,7 @@
 
 #define ORAM_DATA_SIZE 1
 #define ORAM_BUCKET_SIZE 5
+#define ORAM_STASH_SIZE 105  // fp rate 2^(-128) accroding to the PathORAM paper
 
 #define GCM_KEY_SIZE	16
 #define GCM_IV_SIZE     12
@@ -35,7 +36,7 @@ struct FLOW_KEY {   // 13 bytes
 };
 
 #define SKETCH_KEY_SIZE 4
-#define SKETCH_HASH 3
+#define SKETCH_HASH 1
 
 #define FLOW_ID_SIZE sizeof(struct FIVE_TUPLE)
 #define HEAVY_HITTER_SIZE 20

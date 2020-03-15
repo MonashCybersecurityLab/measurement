@@ -6,28 +6,23 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../../../Common/CommonUtil.h"
+#include "Stash.h"
 
 //#define ORAM_DEBUG_PRINT
 
 using namespace std;
 
-template <uint32_t B>
 class PathORAM {
 private:
-    struct __attribute__((packed)) Block {
-        uint32_t id;
-        uint8_t block[B];
-    };
-
     // basic settings
     uint32_t depth;         // the depth of the tree
     uint8_t Z;              // # of blocks per bucket
     uint32_t N;             // # of buckets
+    uint32_t B;             // size of data;
 
-    Block *store;         // a bucket list
+    Block *store;           // a bucket list
     uint32_t *position;     // position map
-    vector<uint32_t, uint8_t[B]> stash;
+    Stash *stash;            // stash
 
     // operators on the tree
     uint32_t random_path() {
@@ -47,7 +42,7 @@ private:
             for(int z = 0; z < Z; z++) {
                 if(bucket[z].id != 0xFFFFFFFF) {
                     // insert into the stash if the block is not a dummy block
-                    memcpy(stash[bucket[z].id], bucket[z].block, B);
+                    stash->insert(bucket[z]);
                 }
             }
         }
@@ -60,10 +55,10 @@ private:
             // get the bucket and write the block as mush as it can
             Block *bucket = store + get_bucket_on_path(x, d) * Z;
             for(int z = 0; z < min((int) valid_blocks.size(), (int) Z); z++) {
-                bucket[z].id = valid_blocks[z];
-                memcpy(bucket[z].block, stash[bucket[z].id], B);
+                bucket[z].id = valid_blocks[z]->b.id;
+                memcpy(bucket[z].block, valid_blocks[z]->b.block, B);
                 // the block is no longer needs to be stored in the stash
-                stash.erase(bucket[z].id);
+                stash->erase(valid_blocks[z]);
             }
             // fill the bucket with dummy blocks
             for(int z = valid_blocks.size(); z < Z; z++) {
@@ -82,31 +77,37 @@ private:
     }
 
     // operators on stash
-    vector<uint32_t> get_intersect_blocks(uint32_t x, int p_depth) {    // retrieve the blocks in the given path and depths
-        vector<uint32_t> valid_blocks;
+    vector<Node*> get_intersect_blocks(uint32_t x, int p_depth) {    // retrieve the blocks in the given path and depths
+        vector<Node*> valid_blocks;
         // find the bucket id
         uint32_t bucket_id = get_bucket_on_path(x, p_depth);
         // scan the stash and retrieve all the blocks that can be put into the bucket
-        for(auto b : stash) {
-            uint32_t bid = b.first;
+        Node* iter = stash->get_start();
+        while (iter != nullptr) {
+            uint32_t bid = iter->b.id;
             if(get_bucket_on_path(position[bid], p_depth) == bucket_id) {
-                valid_blocks.push_back(bid);
+                valid_blocks.push_back(iter);
             }
+            iter = iter->prev;
         }
         return valid_blocks;
     }
 
 
     void read_stash(int bid, uint8_t *b) {
-        if(stash.find(bid) == stash.end()) {
+        Node *retrieve_block = stash->search(bid);
+        if(retrieve_block == nullptr) {
             memset(b, 0, B);
         } else {
-            memcpy(b, stash[bid], B);
+            memcpy(b, retrieve_block->b.block, B);
         }
     }
 
     void write_stash(int bid, uint8_t *b) {
-        memcpy(stash[bid], b, B);
+        Block new_block;
+        new_block.id = bid;
+        memcpy(new_block.block, b, B);
+        stash->insert(new_block);
     }
 
     enum Op {
@@ -133,11 +134,12 @@ private:
     }
 
 public:
-    PathORAM(int depth, uint8_t bucket_size) {
+    PathORAM(int depth, uint8_t bucket_size, uint32_t data_size) {
         // assign basic parameters
         this->depth = depth;
         N = pow(2, depth + 1) - 1;
         Z = bucket_size;
+        B = data_size;
         // initialise the position map
         position = new uint32_t[get_block_count()];
         // initialise the data store
@@ -157,7 +159,7 @@ public:
 #endif
         }
         // clear the stash
-        stash.clear();
+        stash = new Stash(ORAM_STASH_SIZE);
     }
 
     ~PathORAM() {
@@ -169,10 +171,17 @@ public:
     }
 
     void clear() {
-        stash.clear();
+        stash->clear();
         // refill positions
         for(int i = 0; i < get_block_count(); i++) {
             position[i] = random_path();
+        }
+        // reset the store
+        for(int i = 0; i < N; i++) {
+            for(int z = 0; z < Z; z++) {
+                store[i * Z + z].id = 0xFFFFFFFF;
+                memset(store[i * Z + z].block, 0, B);
+            }
         }
     }
 
