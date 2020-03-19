@@ -56,18 +56,38 @@ vector<uint32_t> query_heavy_change(ObliviousBucket<BUCKET_NUM> *prev_bucket, in
     return detected_flow;
 }
 
-void query_dist(ObliviousBucket<BUCKET_NUM> *bucket, CMSketch<FLOW_KEY_SIZE, SKETCH_HASH> *sketch, uint32_t *dist) {
+vector<uint32_t> query_dist(ObliviousBucket<BUCKET_NUM> *bucket, CMSketch<FLOW_KEY_SIZE, SKETCH_HASH> *sketch) {
     // reset the dist array
-    memset(dist, 0, 256 * sizeof(uint32_t));
+    uint32 small_dist[256];
+    memset(small_dist, 0, 256 * sizeof(uint32_t));
     // loop in the statistics to get the distribution info
-    sketch->get_dist(dist);
+    sketch->get_dist(small_dist);
+    // update the distribution based on bucket
+    vector<uint32_t> dist(small_dist, small_dist + 256);
+    bucket->get_distribution(dist, sketch);
+    return dist;
 
 }
 
-float query_entropy(unordered_map<string, float> const &statistics) {
+float query_entropy(ObliviousBucket<BUCKET_NUM> *bucket, CMSketch<FLOW_KEY_SIZE, SKETCH_HASH> *sketch) {
+    // get distribution
+    vector<uint32_t> dist = query_dist(bucket, sketch);
+    // compute the sum
+    int sum = 0;
+    for(int i = 0; i < dist.size(); i++) {
+        sum += dist[i];
+    }
+    // compute entropy based on the distribution and sum
     float entropy = 0.0f;
-    for(auto & it : statistics) {
-        entropy += it.second * log2(it.second);
+    for(int i = 0; i < dist.size(); i++) {
+        if(dist[i] != 0) {
+            entropy += ((float) dist[i] / sum) *log2((float) dist[i]/sum);
+        } else {
+            entropy += 0;
+        }
+        if(isnan(entropy)) {
+            printf("%d\n",i);
+        }
     }
     return -entropy;
 }

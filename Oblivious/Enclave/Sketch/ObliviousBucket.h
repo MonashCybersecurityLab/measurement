@@ -5,6 +5,7 @@
 #ifndef MEASUREMENT_OBLIVIOUSBUCKET_H
 #define MEASUREMENT_OBLIVIOUSBUCKET_H
 
+#include "CMSketch.h"
 #include "../SpookyHash/SpookyV2.h"
 #include "../../../Common/CommonUtil.h"
 
@@ -95,8 +96,18 @@ public:
         return oscan(key, position);
     }
 
-    void get_distribution(vector<uint32_t> dist) {
-
+    void get_distribution(vector<uint32_t> &dist, CMSketch<FLOW_KEY_SIZE, SKETCH_HASH> *sketch) {
+        for(int i = 0; i < BUCKET_NUM; i++) {
+            for(int j = 0; j < COUNTER_PER_BUCKET - 1; j++) {
+                int ex_val = sketch->query((uint8_t*) &buckets[i].key[j]);
+                dist[ex_val] -= selector(1, 0, (ex_val != 0 && get_flag(buckets[i].val[j])));
+                int val = get_val(buckets[i].val[j]) + selector(ex_val, 0, (ex_val != 0 && get_flag(buckets[i].val[j])));
+                if(dist.size() < val + 1) {
+                    dist.resize(val + 1);
+                }
+                dist[val]++;
+            }
+        }
     }
 
     int get_cardinality() {

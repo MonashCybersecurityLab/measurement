@@ -66,9 +66,7 @@ void ecall_run() {
                         uint8_t five_tuple[FLOW_KEY_SIZE + sizeof(uint32_t)]; // FLOW_ID + result = 4 + 4 = 8
                         unpack_message(in_message, &ctx, five_tuple);
                         uint32_t flow_size = cur_bucket->query(five_tuple);
-                        if(flow_size == 0 || get_flag(flow_size)) {
-                            flow_size = get_val(flow_size) + sketch->query(five_tuple);
-                        }
+                        flow_size = get_val(flow_size) + selector(sketch->query(five_tuple), 0, (flow_size == 0 || get_flag(flow_size)));
                         memcpy(five_tuple + FLOW_KEY_SIZE, &flow_size, sizeof(uint32_t));
                         // add a flow size response
                         Message *out_message = pop_front(message_pool);
@@ -116,11 +114,10 @@ void ecall_run() {
                     break;
                 case DIST:
                 {
-                    uint32_t dist[256];
-                    query_dist(cur_bucket, sketch, dist);
+                    vector<uint32_t> dist = query_dist(cur_bucket, sketch);
                     // add a dist response
                     Message *out_message = pop_front(message_pool);
-                    pack_message(out_message, DIST, &ctx, (uint8_t*) dist, 256 * sizeof(uint32_t), 1);
+                    pack_message(out_message, DIST, &ctx, (uint8_t*) dist.data(), dist.size() * sizeof(uint32_t), 1);
                     push_back(output_queue, out_message);
                 }
                     break;
@@ -135,7 +132,7 @@ void ecall_run() {
                     break;
                 case ENTROPY:
                 {
-                    float entropy = query_entropy(cur_statistics);
+                    float entropy = query_entropy(cur_bucket, sketch);
                     // add an entropy response
                     Message *out_message = pop_front(message_pool);
                     pack_message(out_message, ENTROPY, &ctx, (uint8_t*) &entropy, sizeof(float), 1);
