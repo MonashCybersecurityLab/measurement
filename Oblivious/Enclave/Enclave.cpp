@@ -10,8 +10,11 @@ Queue *message_pool = nullptr;
 Queue *input_queue = nullptr;
 Queue *output_queue = nullptr;
 
-ObliviousBucket<BUCKET_NUM> *prep_bucket;
-ObliviousBucket<BUCKET_NUM> *cur_bucket;
+ObliviousBucket<BUCKET_NUM> *prep_bucket = nullptr;
+ObliviousBucket<BUCKET_NUM> *cur_bucket = nullptr;
+
+int prep_total = 0;
+int cur_total = 0;
 unordered_map<string, float> prep_statistics;
 unordered_map<string, float> cur_statistics;
 
@@ -41,6 +44,8 @@ void ecall_run() {
                         uint8_t valid_payload[in_message->header.payload_size - GCM_IV_SIZE];
                         int payload_size = unpack_message(in_message, &ctx, valid_payload);
                         printf("%d packets received\n", payload_size / FLOW_ID_SIZE);
+                        prep_total = cur_total;
+                        cur_total = payload_size / FLOW_ID_SIZE;
                         // clear the present statistics
                         prep_statistics.clear();
                         prep_statistics = cur_statistics;
@@ -96,15 +101,15 @@ void ecall_run() {
                         // query the statistics module
                         uint8_t T[sizeof(float)];
                         unpack_message(in_message, &ctx, T);
-                        vector<string> res_vector = query_heavy_change(prep_statistics, cur_statistics, *((float*) T));
+                        vector<uint32_t> res_vector = query_heavy_change(prep_bucket, prep_total, cur_bucket, cur_total, *((float*) T));
                         // convert vector to uint8_t
-                        uint8_t heavy_change_buffer[res_vector.size() * FLOW_ID_SIZE];
+                        uint8_t heavy_change_buffer[res_vector.size() * FLOW_KEY_SIZE];
                         for(int i = 0; i < res_vector.size(); i++) {
-                            memcpy(heavy_change_buffer + i * FLOW_ID_SIZE, res_vector[i].c_str(), FLOW_ID_SIZE);
+                            memcpy(heavy_change_buffer + i * FLOW_KEY_SIZE, &res_vector[i], FLOW_KEY_SIZE);
                         }
                         // add a Heavy Changes response
                         Message *out_message = pop_front(message_pool);
-                        pack_message(out_message, HEAVY_CHANGE, &ctx, heavy_change_buffer, res_vector.size() * FLOW_ID_SIZE, 1);
+                        pack_message(out_message, HEAVY_CHANGE, &ctx, heavy_change_buffer, res_vector.size() * FLOW_KEY_SIZE, 1);
                         push_back(output_queue, out_message);
                     }
                 }
@@ -112,7 +117,7 @@ void ecall_run() {
                 case DIST:
                 {
                     uint32_t dist[256];
-                    query_dist(sketch, dist);
+                    query_dist(cur_bucket, sketch, dist);
                     // add a dist response
                     Message *out_message = pop_front(message_pool);
                     pack_message(out_message, DIST, &ctx, (uint8_t*) dist, 256 * sizeof(uint32_t), 1);

@@ -127,9 +127,9 @@ void process_result(struct ctx_gcm_s *ctx) {
             case HEAVY_CHANGE:
             {
                 printf("Heavy change list:\n");
-                int size = (res_message->header.payload_size - GCM_IV_SIZE) / FLOW_ID_SIZE;
+                int size = (res_message->header.payload_size - GCM_IV_SIZE) / FLOW_KEY_SIZE;
                 for(int i = 0; i < size; i++) {
-                    //parse_flow_id((struct FLOW_KEY*) (valid_payload + i * FLOW_ID_SIZE));
+                    parse_flow_id(*((uint32_t*)(valid_payload + i * FLOW_KEY_SIZE)));
                 }
             }
                 break;

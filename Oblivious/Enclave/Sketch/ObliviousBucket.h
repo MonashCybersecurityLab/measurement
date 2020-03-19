@@ -95,6 +95,10 @@ public:
         return oscan(key, position);
     }
 
+    void get_distribution(vector<uint32_t> dist) {
+
+    }
+
     int get_cardinality() {
         int card = 0;
         for(int i = 0; i < BUCKET_NUM; i++) {
@@ -105,7 +109,7 @@ public:
         return card;
     }
 
-    unordered_map<uint32_t, uint32_t> get_map() {
+    unordered_map<uint32_t, uint32_t> get_count_map() {
         unordered_map<uint32_t, uint32_t> result_map;
 
         for(int i = 0; i < BUCKET_NUM; i++) {
@@ -113,7 +117,17 @@ public:
                 result_map[buckets[i].key[j]] = get_val(buckets[i].val[j]);
             }
         }
+        return result_map;
+    }
 
+    unordered_map<uint32_t, float> get_stat_map(int total) {
+        unordered_map<uint32_t, float> result_map;
+
+        for(int i = 0; i < BUCKET_NUM; i++) {
+            for(int j = 0; j < COUNTER_PER_BUCKET - 1; j++) {
+                result_map[buckets[i].key[j]] = (float) get_val(buckets[i].val[j]) * 100 / total;
+            }
+        }
         return result_map;
     }
 };

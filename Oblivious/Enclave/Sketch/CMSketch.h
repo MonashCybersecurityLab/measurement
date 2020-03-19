@@ -77,14 +77,14 @@ public:
         return ret;
     }
 
-    void dist(uint32_t *dist) {
+    void get_dist(uint32_t *dist) {
         counters->get_dist(dist);
     }
 
     int get_cardinality() {
         uint32_t dist_array[256];
         memset(dist_array, 0, 256 * sizeof(uint32_t));
-        dist(dist_array);
+        get_dist(dist_array);
         // sum the sketch counter
         int card = 0;
         for(int i = 0; i < 256; i++) {

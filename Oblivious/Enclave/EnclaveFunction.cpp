@@ -30,7 +30,7 @@ void add_trace(ObliviousBucket<BUCKET_NUM> *bucket, CMSketch<FLOW_KEY_SIZE, SKET
 vector<pair<uint32_t, uint32_t>> query_heavy_hitter(ObliviousBucket<BUCKET_NUM> *bucket, int k) {
     vector<pair<uint32_t, uint32_t>> top_k(k);
 
-    unordered_map<uint32_t, uint32_t> serialised_bucket = bucket->get_map();
+    unordered_map<uint32_t, uint32_t> serialised_bucket = bucket->get_count_map();
 
     std::partial_sort_copy(serialised_bucket.begin(), serialised_bucket.end(),
             top_k.begin(), top_k.end(),
@@ -42,9 +42,12 @@ vector<pair<uint32_t, uint32_t>> query_heavy_hitter(ObliviousBucket<BUCKET_NUM> 
     return top_k;
 }
 
-vector<string> query_heavy_change(unordered_map<string, float> &prev_statistics, unordered_map<string, float> &cur_statistics, float T) {
-    vector<string> detected_flow;
+vector<uint32_t> query_heavy_change(ObliviousBucket<BUCKET_NUM> *prev_bucket, int prev_total, ObliviousBucket<BUCKET_NUM> *cur_bucket, int cur_total, float T) {
+    vector<uint32_t> detected_flow;
     // scan the cur statistics
+    unordered_map<uint32_t, float> prev_statistics = prev_bucket->get_stat_map(prev_total);
+    unordered_map<uint32_t, float> cur_statistics = cur_bucket->get_stat_map(cur_total);
+
     for(auto & it : cur_statistics) {
         if(fabs(prev_statistics[it.first] - it.second) >= T) {
             detected_flow.push_back(it.first);
@@ -53,11 +56,12 @@ vector<string> query_heavy_change(unordered_map<string, float> &prev_statistics,
     return detected_flow;
 }
 
-void query_dist(CMSketch<FLOW_KEY_SIZE, SKETCH_HASH> *sketch, uint32_t *dist) {
+void query_dist(ObliviousBucket<BUCKET_NUM> *bucket, CMSketch<FLOW_KEY_SIZE, SKETCH_HASH> *sketch, uint32_t *dist) {
     // reset the dist array
     memset(dist, 0, 256 * sizeof(uint32_t));
     // loop in the statistics to get the distribution info
-    sketch->dist(dist);
+    sketch->get_dist(dist);
+
 }
 
 float query_entropy(unordered_map<string, float> const &statistics) {
