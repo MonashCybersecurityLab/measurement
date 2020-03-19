@@ -94,6 +94,28 @@ public:
         // scan the bucket
         return oscan(key, position);
     }
+
+    int get_cardinality() {
+        int card = 0;
+        for(int i = 0; i < BUCKET_NUM; i++) {
+            for(int j = 0; j < COUNTER_PER_BUCKET - 1; j++) {
+                card += selector(1, 0, (buckets[i].key[j] != 0 && !get_flag(buckets[i].val[j])));
+            }
+        }
+        return card;
+    }
+
+    unordered_map<uint32_t, uint32_t> get_map() {
+        unordered_map<uint32_t, uint32_t> result_map;
+
+        for(int i = 0; i < BUCKET_NUM; i++) {
+            for(int j = 0; j < COUNTER_PER_BUCKET - 1; j++) {
+                result_map[buckets[i].key[j]] = get_val(buckets[i].val[j]);
+            }
+        }
+
+        return result_map;
+    }
 };
 
 #endif //MEASUREMENT_OBLIVIOUSBUCKET_H

@@ -54,7 +54,7 @@ public:
         printf("\tMemory: %.6lfMB\n", w / 1024 / 1024.0);
     }
 
-    void insert(uint8_t * key, uint8_t count = 1)
+    void insert(uint8_t *key, uint8_t count = 1)
     {
         for (int i = 0; i < d; i++) {
             uint32_t index = i * w + (SpookyHash::Hash32(key, key_len, i)) % w;
@@ -75,6 +75,25 @@ public:
             ret = min(ret, tmp[0]);
         }
         return ret;
+    }
+
+    void dist(uint32_t *dist) {
+        counters->get_dist(dist);
+    }
+
+    int get_cardinality() {
+        uint32_t dist_array[256];
+        memset(dist_array, 0, 256 * sizeof(uint32_t));
+        dist(dist_array);
+        // sum the sketch counter
+        int card = 0;
+        for(int i = 0; i < 256; i++) {
+            card += dist_array[i];
+        }
+
+        // perform linear counting
+        double rate = (w - card) / (double) w;
+        return w * log(1 / rate);
     }
 };
 

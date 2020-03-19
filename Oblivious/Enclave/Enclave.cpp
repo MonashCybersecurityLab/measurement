@@ -58,13 +58,16 @@ void ecall_run() {
                     // query the flow size of a given flow ID
                     if(in_message->header.payload_size > 0) {
                         // allocate space for the message
-                        uint8_t five_tuple[FLOW_ID_SIZE + sizeof(int)]; // FLOW_ID + result = 13 + 4 = 17
+                        uint8_t five_tuple[FLOW_KEY_SIZE + sizeof(uint32_t)]; // FLOW_ID + result = 4 + 4 = 8
                         unpack_message(in_message, &ctx, five_tuple);
-                        int flow_size = sketch->query(five_tuple);
-                        memcpy(five_tuple + FLOW_ID_SIZE, &flow_size, sizeof(int));
+                        uint32_t flow_size = cur_bucket->query(five_tuple);
+                        if(flow_size == 0 || get_flag(flow_size)) {
+                            flow_size = get_val(flow_size) + sketch->query(five_tuple);
+                        }
+                        memcpy(five_tuple + FLOW_KEY_SIZE, &flow_size, sizeof(uint32_t));
                         // add a flow size response
                         Message *out_message = pop_front(message_pool);
-                        pack_message(out_message, FLOW_SIZE, &ctx, five_tuple, FLOW_ID_SIZE + sizeof(int), 1);
+                        pack_message(out_message, FLOW_SIZE, &ctx, five_tuple, FLOW_KEY_SIZE + sizeof(int), 1);
                         push_back(output_queue, out_message);
                     }
                     break;
@@ -74,15 +77,15 @@ void ecall_run() {
                         // query the statistics module
                         uint8_t k[sizeof(int)];
                         unpack_message(in_message, &ctx, k);
-                        vector<pair<string, float>> res_vector = query_heavy_hitter(cur_statistics, *((int*) k));
+                        vector<pair<uint32_t, uint32_t>> res_vector = query_heavy_hitter(cur_bucket, *((int*) k));
                         // convert vector to uint8_t
-                        uint8_t heavy_hitter_buffer[res_vector.size() * FLOW_ID_SIZE];
+                        uint8_t heavy_hitter_buffer[res_vector.size() * FLOW_KEY_SIZE];
                         for(int i = 0; i < res_vector.size(); i++) {
-                            memcpy(heavy_hitter_buffer + i * FLOW_ID_SIZE, res_vector[i].first.c_str(), FLOW_ID_SIZE);
+                            memcpy(heavy_hitter_buffer + i * FLOW_KEY_SIZE, &res_vector[i].first, FLOW_KEY_SIZE);
                         }
                         // add a Heavy Hitters response
                         Message *out_message = pop_front(message_pool);
-                        pack_message(out_message, HEAVY_HITTER, &ctx, heavy_hitter_buffer, res_vector.size() * FLOW_ID_SIZE, 1);
+                        pack_message(out_message, HEAVY_HITTER, &ctx, heavy_hitter_buffer, res_vector.size() * FLOW_KEY_SIZE, 1);
                         push_back(output_queue, out_message);
                     }
                     break;
@@ -109,7 +112,7 @@ void ecall_run() {
                 case DIST:
                 {
                     uint32_t dist[256];
-                    query_dist(sketch, cur_statistics, dist);
+                    query_dist(sketch, dist);
                     // add a dist response
                     Message *out_message = pop_front(message_pool);
                     pack_message(out_message, DIST, &ctx, (uint8_t*) dist, 256 * sizeof(uint32_t), 1);
@@ -118,7 +121,7 @@ void ecall_run() {
                     break;
                 case CARDINALITY:
                 {
-                    int stat_size = cur_statistics.size();
+                    int stat_size = cur_bucket->get_cardinality() + sketch->get_cardinality();
                     // add a cardinality response
                     Message *out_message = pop_front(message_pool);
                     pack_message(out_message, CARDINALITY, &ctx, (uint8_t*) &stat_size, sizeof(int), 1);

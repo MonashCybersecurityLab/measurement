@@ -185,6 +185,14 @@ public:
         }
     }
 
+    void get_dist(uint32_t *dist) {
+        for(int i = 0; i < N; i++) {
+            for(int z = 0; z < Z; z++) {
+                dist[store[i *Z + z].block[0]] += selector(1, 0, (store[i * Z + z].id != 0xFFFFFFFF));
+            }
+        }
+    }
+
     uint32_t get_block_count() {
         return N * Z;
     }

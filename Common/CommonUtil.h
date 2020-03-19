@@ -41,6 +41,7 @@ struct FLOW_KEY {   // 13 bytes
 #define get_min(x, y) ((uint32_t) y & bool_extend(x > y)) | ((uint32_t) x & bool_extend(x <= y))
 #define selector(x, y, bit) ((uint32_t) x & bool_extend(bit)) | ((uint32_t) y & bool_extend(!bit))
 #define swap_threshold(negative_val, val) (negative_val > (val << 3))
+#define get_flag(val) (((uint32_t)(val) & 0x80000000) == 0x80000000)
 #define get_val(val) ((uint32_t)((val) & 0x7FFFFFFF))
 
 // sketch definitions
