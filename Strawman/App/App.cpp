@@ -63,13 +63,8 @@ void *e_thread(void *eid) {
     ecall_run(*((sgx_enclave_id_t*) eid));
 }
 
-void parse_flow_id(struct FLOW_KEY *key) {
-    printf("--------------------------Flow ID--------------------------\n");
-    printf("src ip: %s\n", inet_ntoa(*((struct in_addr*) &(key->src_ip))));
-    printf("dst ip: %s\n", inet_ntoa(*((struct in_addr*) &(key->dst_ip))));
-    printf("src port: %d\n", ntohs(key->src_port));
-    printf("dst port: %d\n", ntohs(key->dst_port));
-    printf("proto: %d\n", key->proto);
+void parse_flow_id(uint32_t key) {
+    printf("Flow ID: %s\n", inet_ntoa(*((struct in_addr*) &(key))));
 }
 
 void add_test_queries(struct ctx_gcm_s *ctx) {
@@ -78,7 +73,7 @@ void add_test_queries(struct ctx_gcm_s *ctx) {
         Message *query_message = pop_front(&global_pool);
         switch ((message_type) i) {
             case FLOW_SIZE:
-                pack_message(query_message, (message_type) i, ctx, (uint8_t*) traces[0].data(), FLOW_ID_SIZE, 0);
+                pack_message(query_message, (message_type) i, ctx, (uint8_t*) traces[0].data(), FLOW_KEY_SIZE, 0);
                 break;
             case HEAVY_HITTER:
             {
@@ -116,9 +111,8 @@ void process_result(struct ctx_gcm_s *ctx) {
         switch (res_message->header.type) {
             case FLOW_SIZE:
             {
-                struct FLOW_KEY *flow_key = (struct FLOW_KEY*) valid_payload;
-                int *flow_size = (int *) (valid_payload + FLOW_ID_SIZE);
-                parse_flow_id((struct FLOW_KEY*) valid_payload);
+                int *flow_size = (int *) (valid_payload + FLOW_KEY_SIZE);
+                parse_flow_id(*((uint32_t*)valid_payload));
                 printf("size: %d\n", *flow_size);
             }
                 break;
@@ -126,16 +120,16 @@ void process_result(struct ctx_gcm_s *ctx) {
             {
                 printf("Heavy hitter list:\n");
                 for(int i = 0; i < HEAVY_HITTER_SIZE; i++) {
-                    parse_flow_id((struct FLOW_KEY*) (valid_payload + i * FLOW_ID_SIZE));
+                    parse_flow_id(*((uint32_t*)(valid_payload + i * FLOW_KEY_SIZE)));
                 }
             }
                 break;
             case HEAVY_CHANGE:
             {
                 printf("Heavy change list:\n");
-                int size = (res_message->header.payload_size - GCM_IV_SIZE) / FLOW_ID_SIZE;
+                int size = (res_message->header.payload_size - GCM_IV_SIZE) / FLOW_KEY_SIZE;
                 for(int i = 0; i < size; i++) {
-                    parse_flow_id((struct FLOW_KEY*) (valid_payload + i * FLOW_ID_SIZE));
+                    parse_flow_id(*((uint32_t*)(valid_payload + i * FLOW_KEY_SIZE)));
                 }
             }
                 break;

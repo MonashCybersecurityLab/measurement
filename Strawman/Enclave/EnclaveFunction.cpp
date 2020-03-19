@@ -13,7 +13,7 @@ void add_trace(CMSketch<FLOW_KEY_SIZE, SKETCH_HASH> *sketch, unordered_map<strin
     for(size_t i = 0; i < size; i += FLOW_ID_SIZE) {
         sketch->insert((uint8_t*)(trace + i));
         // insert into the statistics table
-        string str((const char*)(trace + i), FLOW_ID_SIZE);
+        string str((const char*)(trace + i), FLOW_KEY_SIZE);
         statistics[str]++;
     }
 
