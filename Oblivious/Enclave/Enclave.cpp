@@ -4,12 +4,14 @@ using namespace std;
 
 struct ctx_gcm_s ctx;
 
-CMSketch<SKETCH_KEY_SIZE, SKETCH_HASH> *sketch = nullptr;
+CMSketch<FLOW_KEY_SIZE, SKETCH_HASH> *sketch = nullptr;
 
 Queue *message_pool = nullptr;
 Queue *input_queue = nullptr;
 Queue *output_queue = nullptr;
 
+ObliviousBucket<BUCKET_NUM> *prep_bucket;
+ObliviousBucket<BUCKET_NUM> *cur_bucket;
 unordered_map<string, float> prep_statistics;
 unordered_map<string, float> cur_statistics;
 
@@ -20,7 +22,8 @@ void ecall_init(void *pool, void *queue_in, void *queue_out, unsigned char *ovs_
     input_queue = (Queue*) queue_in;
     output_queue = (Queue*) queue_out;
 
-    sketch = new CMSketch<SKETCH_KEY_SIZE, SKETCH_HASH>(600 * 1024);
+    cur_bucket = new ObliviousBucket<BUCKET_NUM>();
+    sketch = new CMSketch<FLOW_KEY_SIZE, SKETCH_HASH>(TOTAL_MEM - BUCKET_MEM);
     sketch->print_basic_info();
 }
 
@@ -41,8 +44,14 @@ void ecall_run() {
                         // clear the present statistics
                         prep_statistics.clear();
                         prep_statistics = cur_statistics;
+                        // clear the old bucket
+                        if(prep_bucket != nullptr) {
+                            delete prep_bucket;
+                        }
+                        prep_bucket = cur_bucket;
+                        cur_bucket = new ObliviousBucket<BUCKET_NUM>();
                         // insert into the sketch and list
-                        add_trace(sketch, cur_statistics, valid_payload, payload_size);
+                        add_trace(cur_bucket, sketch, cur_statistics, valid_payload, payload_size);
                     }
                     break;
                 case FLOW_SIZE:

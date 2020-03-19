@@ -4,7 +4,7 @@ using namespace std;
 
 struct ctx_gcm_s ctx;
 
-CMSketch<SKETCH_KEY_SIZE, SKETCH_HASH> *sketch = nullptr;
+CMSketch<FLOW_KEY_SIZE, SKETCH_HASH> *sketch = nullptr;
 
 Queue *message_pool = nullptr;
 Queue *input_queue = nullptr;
@@ -20,7 +20,7 @@ void ecall_init(void *pool, void *queue_in, void *queue_out, unsigned char *ovs_
     input_queue = (Queue*) queue_in;
     output_queue = (Queue*) queue_out;
 
-    sketch = new CMSketch<SKETCH_KEY_SIZE, SKETCH_HASH>(600 * 1024);
+    sketch = new CMSketch<FLOW_KEY_SIZE, SKETCH_HASH>(600 * 1024);
     sketch->print_basic_info();
 }
 

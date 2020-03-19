@@ -46,7 +46,7 @@ typedef  uint16_t  uint16;
 typedef  uint8_t   uint8;
 #endif
 
-#define SGX 1
+//#define SGX 1
 
 #ifdef SGX
 #include "../EnclaveUtil.h"

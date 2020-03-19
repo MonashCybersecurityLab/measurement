@@ -28,7 +28,7 @@ add_custom_target(cleanup
 FIND_PACKAGE(OpenSSL REQUIRED)
 
 # include root dir
-INCLUDE_DIRECTORIES(Enclave/SpookyHash Enclave/Sketch)
+INCLUDE_DIRECTORIES(Oblivious/Enclave/SpookyHash Oblivious/Enclave/Sketch Common)
 
 ADD_EXECUTABLE(TestSpookyV2 Strawman/Test/TestSpookyV2.cpp Strawman/Enclave/SpookyHash/SpookyV2.cpp)
 
@@ -36,4 +36,8 @@ ADD_EXECUTABLE(TestCMSketch Strawman/Test/TestCMSketch.cpp Strawman/Enclave/Spoo
 
 ADD_EXECUTABLE(TestObliviousSketch Oblivious/Test/TestObliviousSketch.cpp Oblivious/Enclave/SpookyHash/SpookyV2.cpp)
 
+ADD_EXECUTABLE(TestObliviousBucket Oblivious/Test/TestObliviousBucket.cpp Oblivious/Enclave/SpookyHash/SpookyV2.cpp Common/CommonUtil.c)
+
 TARGET_LINK_LIBRARIES(TestObliviousSketch OpenSSL::SSL)
+
+TARGET_LINK_LIBRARIES(TestObliviousBucket OpenSSL::SSL)

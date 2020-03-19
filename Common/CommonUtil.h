@@ -35,7 +35,19 @@ struct FLOW_KEY {   // 13 bytes
     uint8_t proto;
 };
 
-#define SKETCH_KEY_SIZE 4
+#define COUNTER_PER_BUCKET 8
+
+#define bool_extend(val) (-(val) >> 32)
+#define get_min(x, y) ((uint32_t) y & bool_extend(x > y)) | ((uint32_t) x & bool_extend(x <= y))
+#define selector(x, y, bit) ((uint32_t) x & bool_extend(bit)) | ((uint32_t) y & bool_extend(!bit))
+#define swap_threshold(negative_val, val) (negative_val > (val << 3))
+#define get_val(val) ((uint32_t)((val) & 0x7FFFFFFF))
+
+// sketch definitions
+#define TOTAL_MEM 600 * 1024    // 600 KB
+#define BUCKET_MEM (150 * 1024)
+#define BUCKET_NUM (BUCKET_MEM / 64)
+#define FLOW_KEY_SIZE 4
 #define SKETCH_HASH 1
 
 #define FLOW_ID_SIZE sizeof(struct FIVE_TUPLE)

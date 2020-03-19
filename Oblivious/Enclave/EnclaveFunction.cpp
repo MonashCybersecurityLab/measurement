@@ -4,7 +4,7 @@
 
 #include "EnclaveFunction.h"
 
-void add_trace(CMSketch<SKETCH_KEY_SIZE, SKETCH_HASH> *sketch, unordered_map<string, float> &statistics, uint8_t *trace, int size) {
+void add_trace(ObliviousBucket<BUCKET_NUM> *bucket, CMSketch<FLOW_KEY_SIZE, SKETCH_HASH> *sketch, unordered_map<string, float> &statistics, uint8_t *trace, int size) {
     // remove the last statistics
     sketch->reset();
     statistics.clear();
@@ -47,7 +47,7 @@ vector<string> query_heavy_change(unordered_map<string, float> &prev_statistics,
     return detected_flow;
 }
 
-void query_dist(CMSketch<SKETCH_KEY_SIZE, SKETCH_HASH> *sketch, unordered_map<string, float> const &statistics, uint32_t *dist) {
+void query_dist(CMSketch<FLOW_KEY_SIZE, SKETCH_HASH> *sketch, unordered_map<string, float> const &statistics, uint32_t *dist) {
     // reset the dist array
     memset(dist, 0, 256 * sizeof(uint32_t));
     // loop in the statistics to get the distribution info
