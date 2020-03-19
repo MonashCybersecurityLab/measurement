@@ -15,8 +15,6 @@ ObliviousBucket<BUCKET_NUM> *cur_bucket = nullptr;
 
 int prep_total = 0;
 int cur_total = 0;
-unordered_map<string, float> prep_statistics;
-unordered_map<string, float> cur_statistics;
 
 void ecall_init(void *pool, void *queue_in, void *queue_out, unsigned char *ovs_key, size_t key_size) {
     memcpy(ctx.key, ovs_key, key_size);
@@ -46,9 +44,6 @@ void ecall_run() {
                         printf("%d packets received\n", payload_size / FLOW_ID_SIZE);
                         prep_total = cur_total;
                         cur_total = payload_size / FLOW_ID_SIZE;
-                        // clear the present statistics
-                        prep_statistics.clear();
-                        prep_statistics = cur_statistics;
                         // clear the old bucket
                         if(prep_bucket != nullptr) {
                             delete prep_bucket;
@@ -56,7 +51,7 @@ void ecall_run() {
                         prep_bucket = cur_bucket;
                         cur_bucket = new ObliviousBucket<BUCKET_NUM>();
                         // insert into the sketch and list
-                        add_trace(cur_bucket, sketch, cur_statistics, valid_payload, payload_size);
+                        add_trace(cur_bucket, sketch, valid_payload, payload_size);
                     }
                     break;
                 case FLOW_SIZE:

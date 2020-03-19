@@ -4,10 +4,9 @@
 
 #include "EnclaveFunction.h"
 
-void add_trace(ObliviousBucket<BUCKET_NUM> *bucket, CMSketch<FLOW_KEY_SIZE, SKETCH_HASH> *sketch, unordered_map<string, float> &statistics, uint8_t *trace, int size) {
+void add_trace(ObliviousBucket<BUCKET_NUM> *bucket, CMSketch<FLOW_KEY_SIZE, SKETCH_HASH> *sketch, uint8_t *trace, int size) {
     // remove the last statistics
     sketch->reset();
-    statistics.clear();
     // add new info
     for(size_t i = 0; i < size; i += FLOW_ID_SIZE) {
         // dummy data block
@@ -17,13 +16,6 @@ void add_trace(ObliviousBucket<BUCKET_NUM> *bucket, CMSketch<FLOW_KEY_SIZE, SKET
         // insert into the bucket; insert into sketch if failed in bucket
         bucket->insert((uint8_t*)(trace + i), swap_key, swap_value);
         sketch->insert(swap_key, swap_value);
-        // insert into the statistics table
-        string str((const char*)(trace + i), FLOW_ID_SIZE);
-        statistics[str]++;
-    }
-    // compute occurrences
-    for(auto & it : statistics) {
-        it.second = it.second * 100 / (size / FLOW_ID_SIZE);
     }
 }
 
