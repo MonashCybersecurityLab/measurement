@@ -46,10 +46,7 @@ struct FLOW_KEY {   // 13 bytes
 
 // sketch definitions
 #define TOTAL_MEM 600 * 1024    // 600 KB
-#define BUCKET_MEM (150 * 1024)
-#define BUCKET_NUM (BUCKET_MEM / 64)
 #define FLOW_KEY_SIZE 4
-#define SKETCH_HASH 1
 
 #define FLOW_ID_SIZE sizeof(struct FIVE_TUPLE)
 #define HEAVY_HITTER_SIZE 20

@@ -9,6 +9,9 @@
 #include "../SpookyHash/SpookyV2.h"
 #include "../../../Common/CommonUtil.h"
 
+#define BUCKET_MEM (150 * 1024)
+#define BUCKET_NUM (BUCKET_MEM / 64)
+
 struct __attribute__((packed)) Bucket
 {
     uint32_t key[COUNTER_PER_BUCKET];

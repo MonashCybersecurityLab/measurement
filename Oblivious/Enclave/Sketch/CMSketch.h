@@ -10,6 +10,8 @@
 
 using namespace std;
 
+#define SKETCH_HASH 1
+
 template <int key_len, int d>
 class CMSketch {
 private:
