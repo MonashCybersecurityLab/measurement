@@ -14,12 +14,12 @@ void add_trace(CMSketch<FLOW_KEY_SIZE, SKETCH_HASH> *sketch, unordered_map<strin
         sketch->insert((uint8_t*)(trace + i));
         // insert into the statistics table
         string str((const char*)(trace + i), FLOW_KEY_SIZE);
-        statistics[str]++;
+        statistics[str] = 0;
     }
 
     // compute occurrences
     for(auto & it : statistics) {
-        it.second = it.second * 100 / (size / FLOW_ID_SIZE);
+        it.second = (float) sketch->query((uint8_t*) it.first.c_str()) * 100 / (size / FLOW_ID_SIZE);
     }
 }
 
@@ -47,19 +47,27 @@ vector<string> query_heavy_change(unordered_map<string, float> &prev_statistics,
     return detected_flow;
 }
 
-void query_dist(CMSketch<FLOW_KEY_SIZE, SKETCH_HASH> *sketch, unordered_map<string, float> const &statistics, uint32_t *dist) {
-    // reset the dist array
-    memset(dist, 0, 256 * sizeof(uint32_t));
+vector<uint32_t> query_dist(CMSketch<FLOW_KEY_SIZE, SKETCH_HASH> *sketch, unordered_map<string, float> const &statistics) {
+    vector<uint32_t> dist;
     // loop in the statistics to get the distribution info
     for(auto & it : statistics) {
-        dist[sketch->query((uint8_t*) it.first.c_str())]++;
+        uint32_t val = sketch->query((uint8_t*) it.first.c_str());
+        if(dist.size() < val + 1) {
+            dist.resize(val + 1);
+        }
+        dist[val]++;
     }
+    return dist;
 }
 
 float query_entropy(unordered_map<string, float> const &statistics) {
     float entropy = 0.0f;
     for(auto & it : statistics) {
-        entropy += it.second * log2(it.second);
+        if(it.second != 0) {
+            entropy += (it.second / 100) * log2(it.second / 100);
+        } else {
+            entropy += 0;
+        }
     }
     return -entropy;
 }

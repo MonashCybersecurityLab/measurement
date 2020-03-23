@@ -22,7 +22,7 @@ vector<pair<string, float>> query_heavy_hitter(unordered_map<string, float> cons
 
 vector<string> query_heavy_change(unordered_map<string, float> &prev_statistics, unordered_map<string, float> &cur_statistics, float T);
 
-void query_dist(CMSketch<FLOW_KEY_SIZE, SKETCH_HASH> *sketch, unordered_map<string, float> const &statistics, uint32_t *dist);
+vector<uint32_t> query_dist(CMSketch<FLOW_KEY_SIZE, SKETCH_HASH> *sketch, unordered_map<string, float> const &statistics);
 
 float query_entropy(unordered_map<string, float> const &statistics);
 

@@ -12,13 +12,15 @@
 
 using namespace std;
 
+#define SKETCH_HASH 3
+
 template <int key_len, int d>
 class CMSketch {
 private:
     int memory_in_bytes = 0;
 
     int w = 0;
-    uint8_t *counters[d] = {nullptr};
+    uint32_t *counters[d] = {nullptr};
 
 public:
     CMSketch() = default;
@@ -33,11 +35,11 @@ public:
 
     void initial(int bytes) {
         this->memory_in_bytes = bytes;
-        w = memory_in_bytes / d;
+        w = memory_in_bytes / d / sizeof(uint32_t);
 
         for(int i = 0; i < d; i++) {
-            counters[i] = new uint8_t[w];
-            memset(counters[i], 0, w);
+            counters[i] = new uint32_t[w];
+            memset(counters[i], 0, w * sizeof(uint32_t));
         }
     }
 
@@ -57,10 +59,10 @@ public:
     {
         printf("CM sketch\n");
         printf("\tCounters: %d\n", w);
-        printf("\tMemory: %.6lfMB\n", w / 1024 / 1024.0);
+        printf("\tMemory: %.6lfMB\n", w * sizeof(uint32_t) / 1024 / 1024.0);
     }
 
-    void insert(uint8_t * key, uint8_t count = 1)
+    void insert(uint8_t * key, uint32_t count = 1)
     {
         for (int i = 0; i < d; i++) {
             uint32_t index = (SpookyHash::Hash32(key, key_len, i)) % w;
@@ -68,12 +70,12 @@ public:
         }
     }
 
-    uint8_t query(uint8_t * key)
+    uint32_t query(uint8_t * key)
     {
-        uint8_t ret = 255;
+        uint32_t ret = 0xFFFFFFFF;
         for (int i = 0; i < d; i++) {
             uint32_t index = (SpookyHash::Hash32(key, key_len, i)) % w;
-            uint8_t tmp = counters[i][index];
+            uint32_t tmp = counters[i][index];
             ret = min(ret, tmp);
         }
         return ret;

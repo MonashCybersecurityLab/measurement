@@ -142,13 +142,16 @@ void process_result(struct ctx_gcm_s *ctx) {
             case DIST:
             {
                 uint32_t *dist = (uint32_t*) valid_payload;
+                int size = (res_message->header.payload_size - GCM_IV_SIZE) / sizeof(uint32_t);
                 printf("Flow Size Distribution <Flow Size, Count>:\n");
-                for(int i = 0, j = 0; i < 256; i++) {
-                    printf("<%d, %d>", i, dist[i]);
-                    if(++j % 10 == 0) {
-                        printf("\n");
-                    } else {
-                        printf("\t");
+                for(int i = 0, j = 0; i < size; i++) {
+                    if(dist[i] != 0) {
+                        printf("<%d, %d>", i, dist[i]);
+                        if(++j % 10 == 0) {
+                            printf("\n");
+                        } else {
+                            printf("\t");
+                        }
                     }
                 }
                 printf("\n");

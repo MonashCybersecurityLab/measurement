@@ -20,7 +20,7 @@ void ecall_init(void *pool, void *queue_in, void *queue_out, unsigned char *ovs_
     input_queue = (Queue*) queue_in;
     output_queue = (Queue*) queue_out;
 
-    sketch = new CMSketch<FLOW_KEY_SIZE, SKETCH_HASH>(600 * 1024);
+    sketch = new CMSketch<FLOW_KEY_SIZE, SKETCH_HASH>(TOTAL_MEM);
     sketch->print_basic_info();
 }
 
@@ -51,7 +51,7 @@ void ecall_run() {
                         // allocate space for the message
                         uint8_t five_tuple[FLOW_KEY_SIZE + sizeof(int)]; // FLOW_ID + result = 13 + 4 = 17
                         unpack_message(in_message, &ctx, five_tuple);
-                        int flow_size = sketch->query(five_tuple);
+                        uint32_t flow_size = sketch->query(five_tuple);
                         memcpy(five_tuple + FLOW_KEY_SIZE, &flow_size, sizeof(int));
                         // add a flow size response
                         Message *out_message = pop_front(message_pool);
@@ -99,11 +99,10 @@ void ecall_run() {
                     break;
                 case DIST:
                 {
-                    uint32_t dist[256];
-                    query_dist(sketch, cur_statistics, dist);
+                    vector<uint32_t> dist = query_dist(sketch, cur_statistics);
                     // add a dist response
                     Message *out_message = pop_front(message_pool);
-                    pack_message(out_message, DIST, &ctx, (uint8_t*) dist, 256 * sizeof(uint32_t), 1);
+                    pack_message(out_message, DIST, &ctx, (uint8_t*) dist.data(), dist.size() * sizeof(uint32_t), 1);
                     push_back(output_queue, out_message);
                 }
                     break;
@@ -130,7 +129,6 @@ void ecall_run() {
                 default:
                     break;
             }
-
             // free incoming message from the simulator and return the container to the global pool
             ocall_free_message(in_message);
             push_back(message_pool, in_message);
