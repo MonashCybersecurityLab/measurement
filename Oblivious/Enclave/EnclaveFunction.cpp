@@ -73,12 +73,9 @@ float query_entropy(ObliviousBucket<BUCKET_NUM> *bucket, CMSketch<FLOW_KEY_SIZE,
     float entropy = 0.0f;
     for(int i = 0; i < dist.size(); i++) {
         if(dist[i] != 0) {
-            entropy += ((float) dist[i] / sum) *log2((float) dist[i]/sum);
+            entropy += ((float) dist[i] / sum) *log2((float) dist[i] / sum);
         } else {
             entropy += 0;
-        }
-        if(isnan(entropy)) {
-            printf("%d\n",i);
         }
     }
     return -entropy;

@@ -114,6 +114,7 @@ public:
         int card = 0;
         for(int i = 0; i < BUCKET_NUM; i++) {
             for(int j = 0; j < COUNTER_PER_BUCKET - 1; j++) {
+                // exclude the bucket that counted in the light part
                 card += selector(1, 0, (buckets[i].key[j] != 0 && !get_flag(buckets[i].val[j])));
             }
         }
