@@ -52,14 +52,18 @@ public:
     void insert(Block &new_block) {
         // scan the stash to rewrite the existing blocks
         Node *iter = get_start();
+        bool success = false;
         while(iter != nullptr) {
-            if(new_block.id == iter->b.id) {
-                memcpy(iter->b.block, new_block.block, ORAM_DATA_SIZE);
-                return;
-            }
+            int copy_size = selector(ORAM_DATA_SIZE, 0, new_block.id == iter->b.id);
+            memcpy(iter->b.block, new_block.block, copy_size);
+            success |= new_block.id == iter->b.id;
             iter = iter->prev;
         }
-
+        // return after copy
+        if(success) {
+            return;
+        }
+        // insert the new node since it does not exist
         Node *new_node = (Node*) malloc(sizeof(Node));
         // reset the pointer
         new_node->prev = nullptr;
