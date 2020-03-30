@@ -20,7 +20,7 @@ void ecall_init(void *pool, void *queue_in, void *queue_out, unsigned char *ovs_
     input_queue = (Queue*) queue_in;
     output_queue = (Queue*) queue_out;
 
-    sketch = new CMSketch<FLOW_KEY_SIZE, SKETCH_HASH>(TOTAL_MEM);
+    sketch = new CMSketch<FLOW_KEY_SIZE, SKETCH_HASH>(sizeof(uint32_t) * TOTAL_MEM);
     sketch->print_basic_info();
 }
 
@@ -67,7 +67,7 @@ void ecall_run() {
                         unpack_message(in_message, &ctx, k);
                         vector<pair<string, float>> res_vector = query_heavy_hitter(cur_statistics, *((int*) k));
                         // convert vector to uint8_t
-                        uint8_t heavy_hitter_buffer[res_vector.size() * FLOW_ID_SIZE];
+                        uint8_t heavy_hitter_buffer[res_vector.size() * FLOW_KEY_SIZE];
                         for(int i = 0; i < res_vector.size(); i++) {
                             memcpy(heavy_hitter_buffer + i * FLOW_KEY_SIZE, res_vector[i].first.c_str(), FLOW_KEY_SIZE);
                         }
