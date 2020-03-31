@@ -38,6 +38,10 @@ ADD_EXECUTABLE(TestObliviousSketch Oblivious/Test/TestObliviousSketch.cpp Oblivi
 
 ADD_EXECUTABLE(TestObliviousBucket Oblivious/Test/TestObliviousBucket.cpp Oblivious/Enclave/SpookyHash/SpookyV2.cpp Common/CommonUtil.c)
 
+ADD_EXECUTABLE(PacketSampling Tool/PacketSampling.cpp)
+
 TARGET_LINK_LIBRARIES(TestObliviousSketch OpenSSL::SSL)
 
 TARGET_LINK_LIBRARIES(TestObliviousBucket OpenSSL::SSL)
+
+TARGET_LINK_LIBRARIES(PacketSampling pcap)
