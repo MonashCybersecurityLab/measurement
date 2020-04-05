@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
         }
         int sampling_period = stoi(argv[2]);
         int segmentation = 60 / sampling_period;
-        unordered_map<string, int> flow_map[segmentation];
+        unordered_map<string, uint32_t> flow_map[segmentation];
 
         pcap_pkthdr header{};
         const unsigned char *packet;
@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
                 uint8_t key[13];
                 memcpy(key, (it.first).c_str(), 13);
                 fwrite(key, 1, 13, map_fp);
-                fwrite(&it.second, sizeof(int), 1, map_fp);
+                fwrite(&it.second, sizeof(uint32_t), 1, map_fp);
             }
             fclose(map_fp);
         }
