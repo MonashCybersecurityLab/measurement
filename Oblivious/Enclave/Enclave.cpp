@@ -41,7 +41,7 @@ void ecall_run() {
                         // allocate space for the message
                         uint8_t valid_payload[in_message->header.payload_size - GCM_IV_SIZE];
                         int payload_size = unpack_message(in_message, &ctx, valid_payload);
-                        printf("%d packets received\n", payload_size / FLOW_ID_SIZE);
+                        printf("%d flows received\n", payload_size / (FLOW_ID_SIZE + sizeof(uint32_t)));
                         prep_total = cur_total;
                         cur_total = payload_size / FLOW_ID_SIZE;
                         // clear the old bucket

@@ -53,7 +53,7 @@ public:
     {
         printf("CM sketch\n");
         printf("\tCounters: %d\n", w);
-        printf("\tMemory: %.6lfMB\n", w / 1024 / 1024.0);
+        printf("\tMemory: %.6lfMB\n", memory_in_bytes / 1024 / 1024.0);
     }
 
     void insert(uint8_t *key, uint8_t count = 1)

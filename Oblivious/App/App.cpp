@@ -43,22 +43,23 @@ void ReadInTraces(const char *trace_prefix) {
     for(int datafileCnt = START_FILE_NO; datafileCnt <= END_FILE_NO; ++datafileCnt)
     {
         char datafileName[100];
-        sprintf(datafileName, "%s%d.dat", trace_prefix, datafileCnt - 1);
+        sprintf(datafileName, "%s%d", trace_prefix, datafileCnt);
         FILE *fin = fopen(datafileName, "rb");
 
         FIVE_TUPLE tmp_five_tuple{};
         traces[datafileCnt - 1].clear();
         while(fread(&tmp_five_tuple, 1, 13, fin) == 13)
         {
+            int value;
+            fread(&value, sizeof(uint32_t), 1, fin);
             traces[datafileCnt - 1].push_back(tmp_five_tuple);
         }
         fclose(fin);
 
-        printf("Successfully read in %s, %ld packets\n", datafileName, traces[datafileCnt - 1].size());
+        printf("Successfully read in %s, %ld flows\n", datafileName, traces[datafileCnt - 1].size());
     }
     printf("\n");
 }
-
 void *e_thread(void *eid) {
     ecall_run(*((sgx_enclave_id_t*) eid));
 }
@@ -173,7 +174,7 @@ void process_result(struct ctx_gcm_s *ctx) {
     }
 }
 
-int main() {
+int main(int argc, char **argv) {
     // setup OVS parameters
     struct ctx_gcm_s ctx;
 
@@ -212,12 +213,12 @@ int main() {
     pthread_create(&pid, NULL, e_thread, (void*) &eid);
 
     // read offline data
-    ReadInTraces("../data/");
+    ReadInTraces(argv[1]);
 
     // submit trace to the enclave
     for(int datafileCnt = START_FILE_NO; datafileCnt <= END_FILE_NO; ++datafileCnt) {
         char datafileName[100];
-        sprintf(datafileName, "%s%d.dat", "../data/", datafileCnt - 1);
+        sprintf(datafileName, "%s%d", argv[1], datafileCnt);
 
         // pack and offline data
         Message *message = pop_front(&global_pool);

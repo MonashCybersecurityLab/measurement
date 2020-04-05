@@ -8,13 +8,14 @@ void add_trace(ObliviousBucket<BUCKET_NUM> *bucket, CMSketch<FLOW_KEY_SIZE, SKET
     // remove the last statistics
     sketch->reset();
     // add new info
-    for(size_t i = 0; i < size; i += FLOW_ID_SIZE) {
+    // add new info
+    for(size_t i = 0; i < size; i += (FLOW_ID_SIZE + sizeof(uint32_t))) {
         // dummy data block
         uint8_t swap_key[FLOW_KEY_SIZE];
         uint32_t swap_value = 0;
         memcpy(swap_key, (uint8_t*)(trace + i), FLOW_KEY_SIZE);
         // insert into the bucket; insert into sketch if failed in bucket
-        bucket->insert((uint8_t*)(trace + i), swap_key, swap_value);
+        bucket->insert((uint8_t*)(trace + i), swap_key, swap_value, *((uint32_t*)(trace + i + FLOW_ID_SIZE)));
         sketch->insert(swap_key, swap_value);
     }
 }
