@@ -37,7 +37,7 @@ the sketch from the traffic dump and executes all measurement tasks.
 ## Feedback
 
 - [Submit an issue](https://github.com/MonashCybersecurityLab/measurement/issues/new)
-- Email the authors: shifeng.sun@monash.edu, shangqi.lai@monash.edu, xingliang.yuan@monash.edu
+- Email the authors: shangqi.lai@monash.edu, xingliang.yuan@monash.edu
 - Note 1: This is a test program relying on the pre-processed traffic. We note that some features are implemented but 
   require further scrutinisation, so they are currently in the `test` branch. We will try to clean it up by the end of Feb. 
 - Note 2: The code for OVS integration is deeply coupled with the OVS. I will simplify it and provide the patch file, so 
