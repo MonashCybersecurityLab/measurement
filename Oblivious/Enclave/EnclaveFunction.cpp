@@ -4,10 +4,43 @@
 
 #include "EnclaveFunction.h"
 
+uint32_t oswap(uint32_t &x, uint32_t &y, bool flag) {
+    uint32_t t = selector(x, y, flag);
+    x = selector(y, x, flag);
+    y = selector(t, y, flag);
+}
+
+void bitonic_sort(vector<pair<uint32_t, uint32_t>> &input) {
+    bitonic_split(input, 0, input.size(), 0);
+}
+
+void bitonic_split(vector<pair<uint32_t, uint32_t>> &input, int start, int end, int direction) {
+    if(end > 1) {
+        int k = end / 2;
+        bitonic_split(input, start, k, 1);
+        bitonic_split(input, start + k, k, 0);
+        bitonic_merge(input, start, end, 0);
+    }
+}
+
+void bitonic_merge(vector<pair<uint32_t, uint32_t>> &input, int start, int end, int direction) {
+    if(end > 1) {
+        int k = end / 2;
+        for(int i = start; i < start + k; i++) {
+            // swap the input entry obliviously
+            oswap(input[i].first, input[i + k].first,
+                  (direction == (input[i].second > input[i + k].second)));
+            oswap(input[i].second, input[i + k].second,
+                  (direction == (input[i].second > input[i + k].second)));
+        }
+        bitonic_merge(input, start, k, direction);
+        bitonic_merge(input, start + k, k ,direction);
+    }
+}
+
 void add_trace(ObliviousBucket<BUCKET_NUM> *bucket, CMSketch<FLOW_KEY_SIZE, SKETCH_HASH> *sketch, uint8_t *trace, int size) {
     // remove the last statistics
     sketch->reset();
-    // add new info
     // add new info
     for(size_t i = 0; i < size; i += (FLOW_ID_SIZE + sizeof(uint32_t))) {
         // dummy data block
@@ -21,16 +54,17 @@ void add_trace(ObliviousBucket<BUCKET_NUM> *bucket, CMSketch<FLOW_KEY_SIZE, SKET
 }
 
 vector<pair<uint32_t, uint32_t>> query_heavy_hitter(ObliviousBucket<BUCKET_NUM> *bucket, int k) {
-    vector<pair<uint32_t, uint32_t>> top_k(k);
+    vector<pair<uint32_t, uint32_t>> serialised_bucket = bucket->get_count_vector();
 
-    unordered_map<uint32_t, uint32_t> serialised_bucket = bucket->get_count_map();
+    bitonic_sort(serialised_bucket);
 
-    std::partial_sort_copy(serialised_bucket.begin(), serialised_bucket.end(),
-            top_k.begin(), top_k.end(),
-            [](pair<const uint32_t, uint32_t> const& l, pair<const uint32_t, uint32_t> const& r)
-            {
-                return l.second > r.second;
-            });
+    vector<pair<uint32_t, uint32_t>> top_k(serialised_bucket.begin(), serialised_bucket.begin()+ k);
+//    std::partial_sort_copy(serialised_bucket.begin(), serialised_bucket.end(),
+//            top_k.begin(), top_k.end(),
+//            [](pair<const uint32_t, uint32_t> const& l, pair<const uint32_t, uint32_t> const& r)
+//            {
+//                return l.second > r.second;
+//            });
 
     return top_k;
 }

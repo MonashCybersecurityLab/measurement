@@ -124,6 +124,17 @@ public:
         return card;
     }
 
+    vector<pair<uint32_t, uint32_t>> get_count_vector() {
+        vector<pair<uint32_t, uint32_t>> result_vec;
+
+        for(int i = 0; i < BUCKET_NUM; i++) {
+            for(int j = 0; j < COUNTER_PER_BUCKET - 1; j++) {
+                result_vec.emplace_back(pair<uint32_t, uint32_t>(buckets[i].key[j], get_val(buckets[i].val[j])));
+            }
+        }
+        return result_vec;
+    }
+
     unordered_map<uint32_t, uint32_t> get_count_map() {
         unordered_map<uint32_t, uint32_t> result_map;
 
